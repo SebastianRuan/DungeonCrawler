@@ -1,4 +1,7 @@
 import java.io.File
+import kotlin.random.Random
+
+val randGen = Random(8472) // seed 8472 for testing purposes
 
 data class Position(val row: Int, val col: Int)
 
@@ -15,6 +18,10 @@ class Chamber{
         tiling.add(tile)
     }
 
+    // random tile returns a randomly selected tile from tiling
+    fun randomTile():Tile{
+        return tiling[randGen.nextInt(tiling.size)]
+    }
 }
 
 class Board{
@@ -31,18 +38,23 @@ class Board{
     private var floor = 0
 
     init {
+        var row = 0
         File("src\\map.txt").forEachLine {
-            val boardRow = it.map {char:Char ->
-                                if (char == '.') {
-                                    Tile()
-                                } else {
-                                    Piece(char)
-                                }
+            val boardRow = mutableListOf<Piece>()
+            for (col in 0..it.lastIndex) {
+                boardRow += if (it[col] == '.') {
+                                Tile(row, col)
+                            } else {
+                                Piece(it[col])
                             }
+            }
+            row++
             grid.add(boardRow)
         }
         createChambers()
     }
+
+    private val player = spawnPlayer()
 
     // isHorizontalWall determines if the piece at i in row is the top or bottom wall of a chamber.
     private fun isHorizontalWall(row:List<Piece>,i:Int, direction: Int):Int{
@@ -108,8 +120,28 @@ class Board{
                 }
                 col++
             }
-
         }
+    }
+
+    // spawnPlayer asks the user for the what race they want to be then creates and places it on the board
+    private fun spawnPlayer():Player{
+
+        // spawn stair case to next floor
+        val stairChamber = randGen.nextInt(chambers.size)
+        chambers[stairChamber].randomTile().placePiece(Piece('\\'))
+
+        // get player race
+        val factory = PlayerFactory()
+        print("Choose a race (h)uman (d)warf (e)lf (o)rc: ")
+        val race = readLine() ?: "h"
+
+        // spawn player in chamber other than the room with the stairs
+        val playerChambers = (0 until stairChamber).union( stairChamber+1..chambers.lastIndex)
+        val tile = chambers[playerChambers.random(randGen)].randomTile()
+        val pos = tile.position
+        val retPlayer = factory.getPlayer(race,pos, this)
+        tile.placePiece(retPlayer as Piece)
+        return retPlayer
     }
 
     override fun toString(): String {

@@ -12,18 +12,24 @@ open class Piece(private val symbol: Char) {
     }
 }
 
-class Tile(): Piece('.'){
+class Tile(row:Int, col:Int): Piece('.'){
     /*
     * Tile is a special piece (board square in this case) that can have
     * another piece on top of it. When this occurs we want to print the
     * piece on top of it rather than the tile's symbol '.'.
     *
-    * boardPiece is the piece placed on the board square
+    * boardPiece: the piece placed on the board square
+    * position: the location of the board square on the board
     */
 
-    private val boardPiece: Piece? = null
+    private var boardPiece: Piece? = null
+    val position = Position(row,col)
 
     override fun toString(): String {
         return boardPiece?.toString() ?: super.toString()
+    }
+
+    fun placePiece(piece:Piece){
+        boardPiece = piece
     }
 }
