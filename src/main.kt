@@ -13,14 +13,18 @@ class Chamber{
     * */
 
     private val tiling = mutableListOf<Tile>()
+    private val occupiedTiles = mutableSetOf<Int>()
 
     fun append(tile: Tile){
         tiling.add(tile)
+        occupiedTiles.add(tiling.lastIndex)
     }
 
     // random tile returns a randomly selected tile from tiling
     fun randomTile():Tile{
-        return tiling[randGen.nextInt(tiling.size)]
+        val randIndex = occupiedTiles.random(randGen)
+        occupiedTiles.remove(randIndex)
+        return tiling[randIndex]
     }
 }
 
@@ -55,6 +59,8 @@ class Board{
     }
 
     private val player = spawnPlayer()
+
+    private val enemies = spawnEnemies()
 
     // isHorizontalWall determines if the piece at i in row is the top or bottom wall of a chamber.
     private fun isHorizontalWall(row:List<Piece>,i:Int, direction: Int):Int{
@@ -142,6 +148,16 @@ class Board{
         val retPlayer = factory.getPlayer(race,pos, this)
         tile.placePiece(retPlayer as Piece)
         return retPlayer
+    }
+
+    // spawnEnemies creates 20 random enemies with probabilities given in EnemyFactory and returns the list to the board
+    private fun spawnEnemies(){
+        val factory = EnemyFactory()
+        for(i in 1..20){
+            val randChamber = randGen.nextInt(chambers.size)
+            val tile = chambers[randChamber].randomTile()
+            tile.placePiece(factory.getRandomEnemy(tile.position,this))
+        }
     }
 
     override fun toString(): String {

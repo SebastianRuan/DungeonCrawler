@@ -35,6 +35,10 @@ class Orc(pos: Position, board: Board): Player(180, 30, 25, pos, board) {
 }
 
 class PlayerFactory{
+    /*
+    * PlayerFactory has the sole job of generating Player objects depending on what race the user chooses
+    */
+
     fun getPlayer(type: String, pos: Position,  board: Board):Player{
         return when(type){
             "e" -> Elf(pos, board)
