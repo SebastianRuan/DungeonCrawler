@@ -13,6 +13,8 @@ open class Piece(private val symbol: Char) {
 }
 
 class Tile(row:Int, col:Int): Piece('.'){
+//    TODO: make + and # tiles
+
     /*
     * Tile is a special piece (board square in this case) that can have
     * another piece on top of it. When this occurs we want to print the
@@ -24,6 +26,8 @@ class Tile(row:Int, col:Int): Piece('.'){
 
     private var boardPiece: Piece? = null
     val position = Position(row,col)
+    val isEmpty: Boolean
+        get() = boardPiece == null
 
     override fun toString(): String {
         return boardPiece?.toString() ?: super.toString()

@@ -39,15 +39,14 @@ class Phoenix(pos:Position, board:Board): Enemy(50, 35, 20, 'X', pos,board){
 
 }
 
-class EnemyFactory(){
+class EnemyFactory{
     /*
-    * EnemyFactory is repsonsible for creating the many different kinds of enemies the player fights
+    * EnemyFactory is responsible for creating the many different kinds of enemies the player fights
     */
 
     // getRandomEnemy randomly selects an enemy to spawn at position pos on board
     fun getRandomEnemy(pos:Position,board: Board): Enemy{
         val diceRoll = randGen.nextInt(1,19)
-
         return when(diceRoll){
             in 1..4 -> Werewolf(pos,board)   // probability 4/18
             in 5..7 -> Vampier(pos,board)    // probability 3/18

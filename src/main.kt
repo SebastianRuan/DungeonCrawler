@@ -60,7 +60,10 @@ class Board{
 
     private val player = spawnPlayer()
 
-    private val enemies = spawnEnemies()
+    init {
+        spawnEnemies()
+        spawnItems()
+    }
 
     // isHorizontalWall determines if the piece at i in row is the top or bottom wall of a chamber.
     private fun isHorizontalWall(row:List<Piece>,i:Int, direction: Int):Int{
@@ -84,9 +87,9 @@ class Board{
 
     /*  scanChamber scans in a newly discovered camber starting at its topmost left hand corner
      *  at position (paramRow, paramCol) in grid. */
-    private fun scanChamber(paramRow:Int, parmCol:Int){
+    private fun scanChamber(paramRow:Int, paramCol:Int){
         var row = paramRow + 1
-        var col = parmCol
+        var col = paramCol
         var direction = -1
         val chamber = chambers[chambers.lastIndex]
 
@@ -142,7 +145,7 @@ class Board{
         val race = readLine() ?: "h"
 
         // spawn player in chamber other than the room with the stairs
-        val playerChambers = (0 until stairChamber).union( stairChamber+1..chambers.lastIndex)
+        val playerChambers = (0 until stairChamber).union( stairChamber+1..chambers.lastIndex) // avoid stairs
         val tile = chambers[playerChambers.random(randGen)].randomTile()
         val pos = tile.position
         val retPlayer = factory.getPlayer(race,pos, this)
@@ -150,13 +153,105 @@ class Board{
         return retPlayer
     }
 
+    //placePiece randomly selects a tile from the grid
+    private fun getUnoccupiedTile():Tile{
+        val randChamber = randGen.nextInt(chambers.size)
+        return chambers[randChamber].randomTile()
+    }
+
     // spawnEnemies creates 20 random enemies with probabilities given in EnemyFactory and returns the list to the board
     private fun spawnEnemies(){
         val factory = EnemyFactory()
         for(i in 1..20){
-            val randChamber = randGen.nextInt(chambers.size)
-            val tile = chambers[randChamber].randomTile()
+            val tile = getUnoccupiedTile()
             tile.placePiece(factory.getRandomEnemy(tile.position,this))
+        }
+    }
+
+    private fun isUnoccupied(piece: Piece): Boolean{
+        return piece is Tile && piece.isEmpty
+    }
+
+    // oneBlockRadius finds all Tile objects that are in a one block radius of tile
+    private fun oneBlockRadius(tile: Tile): MutableList<Tile>{
+
+        val pos = tile.position
+        val topRow = pos.row - 1
+        val bottomRow = pos.row + 1
+        val colStart = pos.col - 1
+        val colEnd = pos.col + 1
+        val tiles = mutableListOf<Tile>()
+
+        for (col in colStart..colEnd){
+
+            // row above
+            if (col >= 0 && topRow >= 0 && col < grid[0].size && topRow < grid.size &&
+                isUnoccupied(grid[topRow][col])){
+                    tiles.add(grid[topRow][col] as Tile)
+            }
+
+            // row below
+            if (col >= 0 && bottomRow >= 0 && col < grid[0].size && bottomRow < grid.size &&
+                isUnoccupied(grid[bottomRow][col])){
+                tiles.add(grid[bottomRow][col] as Tile)
+            }
+        }
+
+        // check left of tile
+        val colLeft = pos.col - 1
+        if (colLeft >= 0 && colLeft < grid[0].size &&
+                isUnoccupied(grid[pos.row][colLeft])){
+            tiles.add(grid[pos.row][colLeft] as Tile)
+        }
+
+        // check neighbour right of cell
+        val colRight = pos.col + 1
+        if (colRight >= 0 && colRight < grid[0].size &&
+            isUnoccupied(grid[pos.row][colRight])){
+            tiles.add(grid[pos.row][colRight] as Tile)
+        }
+
+        return tiles
+    }
+
+    // spawnItems creates gold and potion objects
+    private fun spawnItems(){
+        // spawn gold
+        for(i in 1..10){
+            val tile = getUnoccupiedTile()
+            val diceRoll = randGen.nextInt(1,9)
+            tile.placePiece(
+                when(diceRoll){
+                    in 1..5 -> Gold(1) // probability 5/8
+                    in 6..7 -> Gold(2) // probability 2/8
+                    else -> {
+                        // spawn dragon to protect large gold horde
+                        val blockRadius =  oneBlockRadius(tile)
+                        if (blockRadius.isEmpty()) println("ERROR") //TODO make this throw something
+                        val dragonTile = blockRadius.random(randGen)
+                        val dragon = Dragon(dragonTile.position,this)
+
+                        Gold(6, dragon) // probability 1/8
+                    }
+                }
+            )
+        }
+
+        // spawn potions
+        for(i in 1..10){
+            val tile = getUnoccupiedTile()
+            val diceRoll = randGen.nextInt(1,7)
+
+            tile.placePiece(
+                when(diceRoll){                         // probabilities are each 1 in 6
+                    1 -> Potion(PotionType.H, 10)
+                    2 -> Potion(PotionType.A, 5)
+                    3 -> Potion(PotionType.D, 5)
+                    4 -> Potion(PotionType.H, -10)
+                    5 -> Potion(PotionType.A, -5)
+                    else -> Potion(PotionType.D, -5)
+                }
+            )
         }
     }
 

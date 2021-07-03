@@ -1,5 +1,5 @@
 abstract class Player(hp: Int,atk: Int, def: Int, position: Position, board: Board):
-    Creature(hp, atk, def,'P', position, board) {
+    Creature(hp, atk, def,'@', position, board) {
     /*
      * Player is the general class for all possible races
      *
