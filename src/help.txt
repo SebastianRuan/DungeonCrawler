@@ -1,0 +1,15 @@
+    Move
+        no: move character north
+        ne: move character north east
+		ea: move character east
+		se: move character south east
+		so: move character south
+		sw: move character south west
+		we: move character north west
+		nw: move character north west
+
+    Interact
+        u <direction>: pick up item in cell corresponding to direction
+            e.g: u no --> use potion to the north of the character
+        a <direction>: attack enemy in cell corresponding to direction
+            e.g: a sw --> attack the item south west of the character

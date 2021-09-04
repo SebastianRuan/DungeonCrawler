@@ -1,5 +1,5 @@
-abstract class Creature(private val hp: Int, private val atk: Int, private val def: Int, symbol: Char,
-                        private val pos: Position,private val board: Board):Piece(symbol) {
+abstract class Creature(hp: Int, val atk: Int, val def: Int, symbol: Char,
+                        protected var pos: Position, protected val board: Board):Piece(symbol) {
     /*
     * Creature stores all of the properties of enemies and players.
     * basically anything that is alive is a creature
@@ -11,8 +11,8 @@ abstract class Creature(private val hp: Int, private val atk: Int, private val d
     * board: a reference to the main board
     */
     val maxHP = hp
+    var hp = hp
+        private set
 
-    abstract fun move()
     abstract fun attack(creature: Creature)
-
 }

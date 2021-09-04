@@ -1,4 +1,7 @@
 import java.io.File
+import java.nio.file.Files
+import java.nio.file.Path
+import java.util.*
 import kotlin.random.Random
 
 val randGen = Random(8472) // seed 8472 for testing purposes
@@ -39,7 +42,7 @@ class Board{
     */
     private val grid  = mutableListOf<List<Piece>>()
     private val chambers = mutableListOf<Chamber>()
-    private var floor = 0
+    private var floor = 1
 
     init {
         var row = 0
@@ -63,6 +66,7 @@ class Board{
     init {
         spawnEnemies()
         spawnItems()
+        commandLine()
     }
 
     // isHorizontalWall determines if the piece at i in row is the top or bottom wall of a chamber.
@@ -255,7 +259,13 @@ class Board{
         }
     }
 
+    // getFloorPiece extracts a tile or a piece that represents part of the board (e.g: "|", "-", etc.)
+    public fun getFloorPiece(row: Int, col: Int): Piece{
+        return grid[row][col]
+    }
+
     override fun toString(): String {
+        // loop through the board and ask each piece to get it's string version
         var printRow = ""
         for (boardRow in grid){
             for(piece in boardRow){
@@ -265,10 +275,58 @@ class Board{
         }
         return printRow
     }
+
+    private fun commandLine(){
+        var msg =""
+
+        while(true) {
+            // print player stats
+            println("\n\n")
+            println(String.format("%s %59s", "Player Type: ${player.javaClass.name}", "floor: $floor"))
+            println("Hp: ${player.hp}  Atk: ${player.atk}  Def: ${player.def}")
+            print(this)
+
+            // print any errors or info from the previous cmd
+            print(msg)
+            msg = ""
+
+            // get command
+            print("Action (h for help): ")
+            val line: List<String> = readLine()?.split(" ") ?: listOf("h")
+            val cmd: String = line[0]
+            val param1: String = if (line.size == 2) line[1] else ""
+
+            try {
+                // execute command
+                when (cmd) {
+                    "no", "ne", "ea", "se", "so", "sw", "we", "nw" -> player.move(cmd)
+
+                    "q" -> break
+
+                    "h" -> { //TODO: make this else?
+                        //TODO make sure the file reading works with other IDEs
+                        msg = File("src/help.txt").readLines().fold(""){
+                                x:String, y: String -> x+y+"\n"
+                        }
+                    }
+                }
+            } catch (e: Exception){
+                msg = e.toString()
+            }
+        }
+
+
+
+
+
+
+
+
+
+
+    }
 }
 
 fun main(){
-    val board = Board()
-    println(board)
-
+    Board()
 }

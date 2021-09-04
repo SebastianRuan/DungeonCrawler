@@ -8,8 +8,26 @@ abstract class Player(hp: Int,atk: Int, def: Int, position: Position, board: Boa
     val gold = 0
 
 
-    override fun move() {
-        TODO("Implement when once spawning is complete")
+    fun move(direction: String){
+        // Select tile
+        val (row, col) = pos
+        val floorPiece = when(direction){
+            "no" -> board.getFloorPiece(row-1, col)
+            "ne" -> board.getFloorPiece(row-1, col+1)
+            "ea" -> board.getFloorPiece(row, col+1)
+            "se" -> board.getFloorPiece(row+1, col+1)
+            "so" -> board.getFloorPiece(row+1, col)
+            "sw" -> board.getFloorPiece(row+1, col-1)
+            "we" -> board.getFloorPiece(row, col-1)
+            else -> board.getFloorPiece(row-1, col-1)
+        }
+        // Move player if possible
+        if(floorPiece is Tile && floorPiece.isEmpty){
+            floorPiece.movePiece( board.getFloorPiece(row,col) as Tile,this)
+            pos = floorPiece.position.copy()
+        } else {
+            throw InvalidMove("Cannot move there.\n")
+        }
     }
 
     override fun attack(creature: Creature) {
@@ -48,3 +66,5 @@ class PlayerFactory{
         }
     }
 }
+
+class InvalidMove(message: String) : Exception(message)

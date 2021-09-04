@@ -4,7 +4,7 @@ abstract class Enemy(hp: Int, atk: Int,def: Int, sym: Char, pos: Position, board
     * Enemy defines the behaviour of the creatures that are attempting to destroy the player
     */
 
-    override fun move(){}
+    fun move(){}
 
     override fun attack(creature: Creature) {
         TODO("Not yet implemented")
@@ -23,7 +23,7 @@ class Troll(pos:Position, board:Board): Enemy(120, 25, 15, 'T', pos,board){
 
 }
 
-class Goblin(pos:Position, board:Board): Enemy(70, 5, 10, 'G', pos,board){
+class Goblin(pos:Position, board:Board): Enemy(70, 5, 10, 'N', pos,board){
 
 }
 
