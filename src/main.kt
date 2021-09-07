@@ -49,8 +49,8 @@ class Board{
         File("src\\map.txt").forEachLine {
             val boardRow = mutableListOf<Piece>()
             for (col in 0..it.lastIndex) {
-                boardRow += if (it[col] == '.') {
-                                Tile(row, col)
+                boardRow += if (it[col] == '.' || it[col] == '+' || it[col] == '#') {
+                                Tile(row, col, it[col])
                             } else {
                                 Piece(it[col])
                             }
@@ -310,8 +310,8 @@ class Board{
                         }
                     }
                 }
-            } catch (e: Exception){
-                msg = e.toString()
+            } catch (e: InvalidMove){
+                msg = e.message ?: e.toString()
             }
         }
 

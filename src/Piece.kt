@@ -12,13 +12,12 @@ open class Piece(private val symbol: Char) {
     }
 }
 
-class Tile(row:Int, col:Int): Piece('.'){
-//    TODO: make + and # tiles
+class Tile(row:Int, col:Int, symbol: Char): Piece(symbol){
 
     /*
     * Tile is a special piece (board square in this case) that can have
     * another piece on top of it. When this occurs we want to print the
-    * piece on top of it rather than the tile's symbol '.'.
+    * piece on top of it rather than the tile's symbol '.', '+', or '#'.
     *
     * boardPiece: the piece placed on the board square
     * position: the location of the board square on the board
