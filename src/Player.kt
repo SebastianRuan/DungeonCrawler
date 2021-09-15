@@ -1,14 +1,30 @@
+interface Subject{
+    val observers: MutableList<Observer>
+    fun attach(observer: Observer){
+        observers.add(observer)
+    }
+    fun detach(observer: Observer){
+        //TODO: finish this
+//        observers.filter {  }
+    }
+    fun notifyAllObservers(){
+        observers.map { it.update() }
+    }
+}
+
+
 abstract class Player(hp: Int,atk: Int, def: Int, position: Position, board: Board):
-    Creature(hp, atk, def,'@', position, board) {
+    Creature(hp, atk, def,'@', position, board), Subject {
     /*
      * Player is the general class for all possible races
      *
      * gold: the amount of money the player has
      */
     val gold = 0
+    override val observers = mutableListOf<Observer>()
+    
 
-
-    fun move(direction: String){
+    fun move(direction: String){    
         // Select tile
         val (row, col) = pos
         val floorPiece = when(direction){
@@ -19,7 +35,7 @@ abstract class Player(hp: Int,atk: Int, def: Int, position: Position, board: Boa
             "so" -> board.getFloorPiece(row+1, col)
             "sw" -> board.getFloorPiece(row+1, col-1)
             "we" -> board.getFloorPiece(row, col-1)
-            else -> board.getFloorPiece(row-1, col-1)
+            else -> board.getFloorPiece(row-1, col-1)   
         }
         // Move player if possible
         if(floorPiece is Tile && floorPiece.isEmpty){
@@ -28,6 +44,8 @@ abstract class Player(hp: Int,atk: Int, def: Int, position: Position, board: Boa
         } else {
             throw InvalidMove("Cannot move there.\n")
         }
+        
+        notifyAllObservers()
     }
 
     override fun attack(creature: Creature) {

@@ -1,10 +1,30 @@
+interface Observer{
+    fun update()
+}
+
+
 abstract class Enemy(hp: Int, atk: Int,def: Int, sym: Char, pos: Position, board:Board ):
-    Creature(hp,atk,def,sym,pos, board) {
+    Creature(hp,atk,def,sym,pos, board), Observer {
     /*
     * Enemy defines the behaviour of the creatures that are attempting to destroy the player
     */
 
-    fun move(){}
+    override fun update() {
+        move()
+    }
+    
+    // move randomly selects a nearby tile and moves "this" to it. 
+    fun move(){
+        val (row, col) = pos
+        val row_change = randGen.nextInt(-1,2)
+        val col_change = randGen.nextInt(-1,2)
+        val floorPiece = board.getFloorPiece(row + row_change, col + col_change)
+
+        if(floorPiece is Tile && floorPiece.isEmpty){
+            floorPiece.movePiece( board.getFloorPiece(row,col) as Tile,this)
+            pos = floorPiece.position.copy()
+        }
+    }
 
     override fun attack(creature: Creature) {
         TODO("Not yet implemented")

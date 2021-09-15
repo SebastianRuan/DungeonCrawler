@@ -168,7 +168,9 @@ class Board{
         val factory = EnemyFactory()
         for(i in 1..20){
             val tile = getUnoccupiedTile()
-            tile.placePiece(factory.getRandomEnemy(tile.position,this))
+            val enemy: Enemy = factory.getRandomEnemy(tile.position,this)
+            tile.placePiece(enemy)
+            player.attach(enemy)
         }
     }
 
