@@ -136,10 +136,10 @@ class Board{
         }
     }
 
-    // spawnPlayer asks the user for the what race they want to be then creates and places it on the board
+    // spawnPlayer asks the user for the race they want to be, then creates and places it on the board
     private fun spawnPlayer():Player{
 
-        // spawn stair case to next floor
+        // spawn staircase to next floor
         val stairChamber = randGen.nextInt(chambers.size)
         chambers[stairChamber].randomTile().placePiece(Piece('\\'))
 
@@ -179,7 +179,7 @@ class Board{
     }
 
     // oneBlockRadius finds all Tile objects that are in a one block radius of tile
-    private fun oneBlockRadius(tile: Tile): MutableList<Tile>{
+    public fun oneBlockRadius(tile: Tile): MutableList<Tile>{
 
         val pos = tile.position
         val topRow = pos.row - 1
@@ -235,9 +235,11 @@ class Board{
                         val blockRadius =  oneBlockRadius(tile)
                         if (blockRadius.isEmpty()) println("ERROR") //TODO make this throw something
                         val dragonTile = blockRadius.random(randGen)
-                        val dragon = Dragon(dragonTile.position,this)
+                        val dragon = Dragon(dragonTile.position,tile,this)
+                        dragonTile.placePiece(dragon)
+                        player.attach(dragon)
 
-                        Gold(6, dragon) // probability 1/8
+                        Gold(6) // probability 1/8
                     }
                 }
             )

@@ -1,4 +1,4 @@
-data class Gold(val amt: Int, var dragon:Dragon? = null):Piece('G'){
+data class Gold(val amt: Int):Piece('G'){
     override fun toString(): String {
         return super.toString()
     }
