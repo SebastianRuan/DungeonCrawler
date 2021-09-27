@@ -37,10 +37,14 @@ abstract class Player(hp: Int,atk: Int, def: Int, position: Position, board: Boa
             "we" -> board.getFloorPiece(row, col-1)
             else -> board.getFloorPiece(row-1, col-1)   
         }
+
         // Move player if possible
-        if(floorPiece is Tile && floorPiece.isEmpty){
+        pos = if(floorPiece is Tile && floorPiece.isEmpty){
             floorPiece.movePiece( board.getFloorPiece(row,col) as Tile,this)
-            pos = floorPiece.position.copy()
+            floorPiece.position.copy()
+        } else if(floorPiece.toString() == "\\"){           // When Player moves onto stairs
+            observers.clear()
+            board.nextLevel()
         } else {
             throw InvalidMove("Cannot move there.\n")
         }

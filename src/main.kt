@@ -1,7 +1,4 @@
 import java.io.File
-import java.nio.file.Files
-import java.nio.file.Path
-import java.util.*
 import kotlin.random.Random
 
 val randGen = Random(8472) // seed 8472 for testing purposes
@@ -36,13 +33,14 @@ class Board{
     * Board tracks everything. Just like a real board game it knows where the
     * player is and where all the potions are as well as all the enemies.
     *
-    * grid: a 2d list representing all the squares on the board
-    * chambers: a list of all the rooms that exist on the current floor
-    * floor: the level of the dungeon the player is currently on
+    * grid: a 2d list representing all the squares on the board.
+    * chambers: a list of all the rooms that exist on the current floor.
+    * floor: the level of the dungeon the player is currently on.
     */
     private val grid  = mutableListOf<List<Piece>>()
     private val chambers = mutableListOf<Chamber>()
     private var floor = 1
+    private var msg = ""
 
     init {
         var row = 0
@@ -89,7 +87,7 @@ class Board{
         return j
     }
 
-    /*  scanChamber scans in a newly discovered camber starting at its topmost left hand corner
+    /*  scanChamber scans in a newly discovered camber starting at its topmost left-hand corner
      *  at position (paramRow, paramCol) in grid. */
     private fun scanChamber(paramRow:Int, paramCol:Int){
         var row = paramRow + 1
@@ -97,7 +95,7 @@ class Board{
         var direction = -1
         val chamber = chambers[chambers.lastIndex]
 
-        // find all of the tiles in the chamber in a back and forth scan
+        // find all the tiles in the chamber in a back and forth scan
         while(isHorizontalWall(grid[row], col, direction) == col){
             var boardPiece = grid[row][col]
             while((boardPiece.toString() != "|" && boardPiece.toString() != "+") ||
@@ -136,28 +134,45 @@ class Board{
         }
     }
 
+    // spawnStaircase to next floor and return it's chamber number
+    private fun spawnStaircase(): Int{
+        val stairChamber = randGen.nextInt(chambers.size)
+        chambers[stairChamber].randomTile().placePiece(Piece('\\'))
+        return stairChamber
+    }
+
+    // newPlayerPos finds and returns a tile for the player in a chamber other than the chamber with stairs
+    private fun newPlayerPos(stairChamber: Int): Tile{
+        val playerChambers = (0 until stairChamber).union( stairChamber+1..chambers.lastIndex) // avoid stairs
+        return chambers[playerChambers.random(randGen)].randomTile()
+    }
+
     // spawnPlayer asks the user for the race they want to be, then creates and places it on the board
     private fun spawnPlayer():Player{
 
-        // spawn staircase to next floor
-        val stairChamber = randGen.nextInt(chambers.size)
-        chambers[stairChamber].randomTile().placePiece(Piece('\\'))
+        val stairChamber = spawnStaircase()
 
         // get player race
         val factory = PlayerFactory()
         print("Choose a race (h)uman (d)warf (e)lf (o)rc: ")
         val race = readLine() ?: "h"
 
-        // spawn player in chamber other than the room with the stairs
-        val playerChambers = (0 until stairChamber).union( stairChamber+1..chambers.lastIndex) // avoid stairs
-        val tile = chambers[playerChambers.random(randGen)].randomTile()
-        val pos = tile.position
-        val retPlayer = factory.getPlayer(race,pos, this)
+        // spawn and place player
+        val tile = newPlayerPos(stairChamber)
+        val retPlayer = factory.getPlayer(race,tile.position, this)
         tile.placePiece(retPlayer as Piece)
         return retPlayer
     }
 
-    //placePiece randomly selects a tile from the grid
+    // repositionPlayer seeks to relocate the player on the board
+    private fun repositionPlayer(): Position{
+        val stairChamber = spawnStaircase()
+        val tile = newPlayerPos(stairChamber)
+        tile.placePiece(player as Piece)
+        return tile.position
+    }
+
+    //getUnoccupiedTile randomly selects an empty tile from the grid
     private fun getUnoccupiedTile():Tile{
         val randChamber = randGen.nextInt(chambers.size)
         return chambers[randChamber].randomTile()
@@ -179,7 +194,7 @@ class Board{
     }
 
     // oneBlockRadius finds all Tile objects that are in a one block radius of tile
-    public fun oneBlockRadius(tile: Tile): MutableList<Tile>{
+    fun oneBlockRadius(tile: Tile): MutableList<Tile>{
 
         val pos = tile.position
         val topRow = pos.row - 1
@@ -264,12 +279,32 @@ class Board{
     }
 
     // getFloorPiece extracts a tile or a piece that represents part of the board (e.g: "|", "-", etc.)
-    public fun getFloorPiece(row: Int, col: Int): Piece{
+    fun getFloorPiece(row: Int, col: Int): Piece{
         return grid[row][col]
     }
 
+    // nextLevel clears and sets the board up for the next level of the dungeon
+    fun nextLevel(): Position{
+        msg = "You descend deeper!\n"
+        floor++
+
+        // Clear board
+        for (row in grid) {
+            for (piece in row) {
+                if (piece is Tile) {
+                    piece.clear()
+                }
+            }
+        }
+
+        val pos = repositionPlayer()
+        spawnEnemies()
+        spawnItems()
+        return pos
+    }
+
     override fun toString(): String {
-        // loop through the board and ask each piece to get it's string version
+        // loop through the board and ask each piece to get its string version
         var printRow = ""
         for (boardRow in grid){
             for(piece in boardRow){
@@ -281,7 +316,6 @@ class Board{
     }
 
     private fun commandLine(){
-        var msg =""
 
         while(true) {
             // print player stats
@@ -314,20 +348,10 @@ class Board{
                         }
                     }
                 }
-            } catch (e: InvalidMove){
+            } catch (e: InvalidMove) {
                 msg = e.message ?: e.toString()
             }
         }
-
-
-
-
-
-
-
-
-
-
     }
 }
 

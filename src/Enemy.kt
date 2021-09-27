@@ -16,9 +16,9 @@ abstract class Enemy(hp: Int, atk: Int,def: Int, sym: Char, pos: Position, board
     // getNewLocation randomly selects and returns a nearby tile
     protected fun getNewLocation(): Piece{
         val (row, col) = pos
-        val row_change = randGen.nextInt(-1,2)
-        val col_change = randGen.nextInt(-1,2)
-        return board.getFloorPiece(row + row_change, col + col_change)
+        val rowChange = randGen.nextInt(-1,2)
+        val colChange = randGen.nextInt(-1,2)
+        return board.getFloorPiece(row + rowChange, col + colChange)
     }
 
     // walk moves the enemy from one tile to the next
@@ -41,7 +41,7 @@ abstract class Enemy(hp: Int, atk: Int,def: Int, sym: Char, pos: Position, board
     }
 }
 
-class Vampier(pos:Position, board:Board): Enemy(50, 25, 25, 'V', pos,board){
+class Vampire(pos:Position, board:Board): Enemy(50, 25, 25, 'V', pos,board){
 
 }
 
@@ -79,7 +79,7 @@ class Phoenix(pos:Position, board:Board): Enemy(50, 35, 20, 'X', pos,board){
 
 class EnemyFactory{
     /*
-    * EnemyFactory is responsible for creating the many different kinds of enemies the player fights
+    * EnemyFactory is responsible for creating the many kinds of enemies the player fights
     */
 
     // getRandomEnemy randomly selects an enemy to spawn at position pos on board
@@ -87,7 +87,7 @@ class EnemyFactory{
         val diceRoll = randGen.nextInt(1,19)
         return when(diceRoll){
             in 1..4 -> Werewolf(pos,board)   // probability 4/18
-            in 5..7 -> Vampier(pos,board)    // probability 3/18
+            in 5..7 -> Vampire(pos,board)    // probability 3/18
             in 8..12 -> Goblin(pos,board)    // probability 5/18
             in 13..14 -> Troll(pos,board)    // probability 2/18
             in 15..16 -> Phoenix(pos,board)  // probability 2/18

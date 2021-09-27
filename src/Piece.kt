@@ -36,9 +36,13 @@ class Tile(row:Int, col:Int, symbol: Char): Piece(symbol){
         boardPiece = piece
     }
 
-    // movePiece removes movable from it's origin tile and places it on this tile
-    fun movePiece(origin: Tile, moveable: Piece){
+    // movePiece removes movable from its origin tile and places it on this tile
+    fun movePiece(origin: Tile, movable: Piece){
         origin.boardPiece = null
-        placePiece(moveable)
+        placePiece(movable)
+    }
+
+    fun clear(){
+        boardPiece = null
     }
 }
