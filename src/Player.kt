@@ -20,7 +20,7 @@ abstract class Player(hp: Int,atk: Int, def: Int, position: Position, board: Boa
      *
      * gold: the amount of money the player has
      */
-    val gold = 0
+    var gold = 0
     override val observers = mutableListOf<Observer>()
     
 
@@ -39,10 +39,15 @@ abstract class Player(hp: Int,atk: Int, def: Int, position: Position, board: Boa
         }
 
         // Move player if possible
-        pos = if(floorPiece is Tile && floorPiece.isEmpty){
+        pos = if(floorPiece is Tile && (floorPiece.isEmpty || floorPiece.toString() == "G")){
+            if (floorPiece.toString() == "G") {               // Get gold
+                gold += (floorPiece.boardPiece as Gold).amt
+                floorPiece.clear()
+            }
+            // move
             floorPiece.movePiece( board.getFloorPiece(row,col) as Tile,this)
             floorPiece.position.copy()
-        } else if(floorPiece.toString() == "\\"){           // When Player moves onto stairs
+        }  else if (floorPiece.toString() == "\\"){           // When Player moves onto stairs
             observers.clear()
             board.nextLevel()
         } else {

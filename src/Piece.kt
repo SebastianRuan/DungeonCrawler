@@ -23,7 +23,8 @@ class Tile(row:Int, col:Int, symbol: Char): Piece(symbol){
     * position: the location of the board square on the board
     */
 
-    private var boardPiece: Piece? = null
+    var boardPiece: Piece? = null
+        private set
     val position = Position(row,col)
     val isEmpty: Boolean
         get() = boardPiece == null
