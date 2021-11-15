@@ -4,8 +4,7 @@ interface Subject{
         observers.add(observer)
     }
     fun detach(observer: Observer){
-        //TODO: finish this
-//        observers.filter {  }
+        observers.remove(observer)
     }
     fun notifyAllObservers(){
         observers.map { it.update() }
@@ -22,12 +21,12 @@ abstract class Player(hp: Int,atk: Int, def: Int, position: Position, board: Boa
      */
     var gold = 0
     override val observers = mutableListOf<Observer>()
-    
 
-    fun move(direction: String){    
+    // dirToTile converts string direction (no, so, ea, etc) to a piece in specified direction
+    private fun dirToTile(direction:String): Piece{
         // Select tile
         val (row, col) = pos
-        val floorPiece = when(direction){
+        return when(direction){
             "no" -> board.getFloorPiece(row-1, col)
             "ne" -> board.getFloorPiece(row-1, col+1)
             "ea" -> board.getFloorPiece(row, col+1)
@@ -35,9 +34,13 @@ abstract class Player(hp: Int,atk: Int, def: Int, position: Position, board: Boa
             "so" -> board.getFloorPiece(row+1, col)
             "sw" -> board.getFloorPiece(row+1, col-1)
             "we" -> board.getFloorPiece(row, col-1)
-            else -> board.getFloorPiece(row-1, col-1)   
+            else -> board.getFloorPiece(row-1, col-1)
         }
+    }
 
+    fun move(direction: String){    
+
+        val floorPiece = dirToTile(direction)
         // Move player if possible
         pos = if(floorPiece is Tile && (floorPiece.isEmpty || floorPiece.toString() == "G")){
             if (floorPiece.toString() == "G") {               // Get gold
@@ -45,20 +48,41 @@ abstract class Player(hp: Int,atk: Int, def: Int, position: Position, board: Boa
                 floorPiece.clear()
             }
             // move
-            floorPiece.movePiece( board.getFloorPiece(row,col) as Tile,this)
+            floorPiece.movePiece( board.getFloorPiece(pos.row,pos.col) as Tile,this)
             floorPiece.position.copy()
         }  else if (floorPiece.toString() == "\\"){           // When Player moves onto stairs
             observers.clear()
             board.nextLevel()
         } else {
-            throw InvalidMove("Cannot move there.\n")
+            throw InvalidMove("Cannot move there.")
         }
         
         notifyAllObservers()
     }
 
-    override fun attack(creature: Creature) {
-        TODO("Implement when we do combat")
+    // attack damages an enemy in direction
+    fun attack(direction: String) {
+        val floorPiece = dirToTile(direction)
+        if(floorPiece is Tile && floorPiece.boardPiece is Enemy){           // attack successfully targets an enemy
+            try {
+                (floorPiece.boardPiece as Enemy).damage(atk)
+            } catch (e: KillMsg){
+                this.detach(floorPiece.boardPiece as Enemy)
+                floorPiece.clear()
+                throw e
+            }
+
+        } else if (floorPiece is Tile && !floorPiece.isEmpty){              // attack incorrectly targets an item
+            val item = when(floorPiece.boardPiece){
+                is Potion -> "potions"
+                else -> "gold"
+            }
+            throw InvalidMove("Cannot attack $item.")
+        } else if (floorPiece is Tile) {
+            throw InvalidMove("Cannot attack an empty tile.")
+        } else {
+            throw InvalidMove("Cannot attack a wall.")
+        }
     }
 
 }
@@ -94,4 +118,7 @@ class PlayerFactory{
     }
 }
 
-class InvalidMove(message: String) : Exception(message)
+open class GameException(message: String): Exception(message)
+class InvalidMove(message: String) : GameException(message)
+class DamageMsg(message: String) : GameException(message)
+class KillMsg(message: String) : GameException(message)

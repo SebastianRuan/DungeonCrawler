@@ -1,3 +1,5 @@
+import kotlin.math.ceil
+
 abstract class Creature(hp: Int, val atk: Int, val def: Int, symbol: Char,
                         protected var pos: Position, protected val board: Board):Piece(symbol) {
     /*
@@ -14,5 +16,17 @@ abstract class Creature(hp: Int, val atk: Int, val def: Int, symbol: Char,
     var hp = hp
         private set
 
-    abstract fun attack(creature: Creature)
+    fun damage(atk: Int){
+
+        val damageDealt = ceil((100/(100.0 + def)) * atk).toInt()
+        hp -= damageDealt
+        if (hp < 0){
+            if (this is Enemy){
+                throw KillMsg("You did $damageDealt damage and killed the creature!")
+            } else {
+                TODO("End Game")
+            }
+        }
+        throw DamageMsg("You did $damageDealt damage.")
+    }
 }

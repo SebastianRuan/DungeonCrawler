@@ -30,13 +30,12 @@ abstract class Enemy(hp: Int, atk: Int,def: Int, sym: Char, pos: Position, board
     // move find and moves "this" to a new tile if possible.
     open fun move(){
         val floorPiece = getNewLocation()
-
         if(floorPiece is Tile && floorPiece.toString() != "+" && floorPiece.isEmpty){
             walk(floorPiece)
         }
     }
 
-    override fun attack(creature: Creature) {
+    fun attack(creature: Creature) {
         TODO("Not yet implemented")
     }
 }

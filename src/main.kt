@@ -1,5 +1,7 @@
 import java.io.File
+import java.lang.Exception
 import kotlin.random.Random
+import kotlin.reflect.typeOf
 
 val randGen = Random(8472) // seed 8472 for testing purposes
 
@@ -341,6 +343,8 @@ class Board{
 
                     "q" -> break
 
+                    "a" -> player.attack(param1)
+
                     "h" -> { //TODO: make this else?
                         //TODO make sure the file reading works with other IDEs
                         msg = File("src/help.txt").readLines().fold(""){
@@ -348,8 +352,8 @@ class Board{
                         }
                     }
                 }
-            } catch (e: InvalidMove) {
-                msg = e.message ?: e.toString()
+            } catch (e: GameException) {
+                msg = (e.message ?: e.toString()) + "\n"
             }
         }
     }
