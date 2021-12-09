@@ -317,7 +317,7 @@ class Board{
             // print player stats
             println("\n\n")
             println(String.format("%s %59s", "Player Type: ${player.javaClass.name}", "floor: $floor"))
-            println("Hp: ${player.hp}  Atk: ${player.atk}  Def: ${player.def}")
+            println("Hp: ${player.hp}  Atk: ${player.atk}  Def: ${player.def} Gold: ${player.gold}")
             print(this)
 
             // print any errors or info from the previous cmd

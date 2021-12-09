@@ -20,6 +20,7 @@ abstract class Player(hp: Int,atk: Int, def: Int, position: Position, board: Boa
      * gold: the amount of money the player has
      */
     var gold = 0
+        private set
     override val observers = mutableListOf<Observer>()
 
     // dirToTile converts string direction (no, so, ea, etc) to a piece in specified direction
@@ -67,6 +68,7 @@ abstract class Player(hp: Int,atk: Int, def: Int, position: Position, board: Boa
             try {
                 (floorPiece.boardPiece as Enemy).damage(atk)
             } catch (e: KillMsg){
+                gold += 1
                 this.detach(floorPiece.boardPiece as Enemy)
                 floorPiece.clear()
                 throw e
