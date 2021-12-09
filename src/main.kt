@@ -65,6 +65,7 @@ class Board{
     init {
         spawnEnemies()
         spawnItems()
+        Merchant.hostile = false
     }
 
     // isHorizontalWall determines if the piece at i in row is the top or bottom wall of a chamber.

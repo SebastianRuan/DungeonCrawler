@@ -29,7 +29,7 @@ abstract class Enemy(hp: Int, atk: Int,def: Int, sym: Char, pos: Position, board
     }
 
     // getPlayerInRange determines if the player is close enough for the enemy to attack and returns the player if so
-    fun getPlayerInRange(): Player?{
+    protected fun getPlayerInRange(): Player?{
         val attackRadius = board.oneBlockRadius(board.getFloorPiece(pos.row,pos.col) as Tile)
 
         // see if player is withing a one block radius
@@ -42,14 +42,14 @@ abstract class Enemy(hp: Int, atk: Int,def: Int, sym: Char, pos: Position, board
     }
 
     // move find and moves "this" to a new tile if possible.
-    open fun move(){
+    protected open fun move(){
             val floorPiece = getNewLocation()
             if (floorPiece is Tile && floorPiece.toString() != "+" && floorPiece.isEmpty) {
                 walk(floorPiece)
             }
     }
 
-    fun attack(creature: Creature) {
+    protected fun attack(creature: Creature) {
         creature.damage(this.atk)
         throw DamageMsg("The creature damaged you")
     }
@@ -73,6 +73,19 @@ class Goblin(pos:Position, board:Board): Enemy(70, 5, 10, 'N', pos,board){
 
 class Merchant(pos:Position, board:Board): Enemy(30, 70, 5, 'M', pos,board){
 
+    companion object{
+        var hostile = false
+    }
+
+    override fun update() {
+        val player = getPlayerInRange()
+        if (player != null && hostile) attack(player) else move()
+    }
+
+    override fun damage(atk: Int) {
+        hostile = true
+        super.damage(atk)
+    }
 }
 
 

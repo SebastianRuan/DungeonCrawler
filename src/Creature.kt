@@ -16,7 +16,7 @@ abstract class Creature(hp: Int, val atk: Int, val def: Int, symbol: Char,
     var hp = hp
         private set
 
-    fun damage(atk: Int){
+    open fun damage(atk: Int){
 
         val damageDealt = ceil((100/(100.0 + def)) * atk).toInt()
         hp -= damageDealt
