@@ -70,6 +70,14 @@ abstract class Player(hp: Int,atk: Int, def: Int, position: Position, board: Boa
                 this.detach(floorPiece.boardPiece as Enemy)
                 floorPiece.clear()
                 throw e
+            } catch (enemyDamaged: DamageMsg){
+                try {
+                    notifyAllObservers()
+                }catch (playerDamaged: DamageMsg){
+                    throw DamageMsg("${enemyDamaged.message}\n${playerDamaged.message}")
+                }catch (DEATH: GameOver){
+                    throw GameOver("${enemyDamaged.message}\n${DEATH.message}")
+                }
             }
 
         } else if (floorPiece is Tile && !floorPiece.isEmpty){              // attack incorrectly targets an item
@@ -122,3 +130,4 @@ open class GameException(message: String): Exception(message)
 class InvalidMove(message: String) : GameException(message)
 class DamageMsg(message: String) : GameException(message)
 class KillMsg(message: String) : GameException(message)
+class GameOver(message: String) : GameException(message)

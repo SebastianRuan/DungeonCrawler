@@ -10,7 +10,8 @@ abstract class Enemy(hp: Int, atk: Int,def: Int, sym: Char, pos: Position, board
     */
 
     override fun update() {
-        move()
+        val player = getPlayerInRange()
+        if (player != null) attack(player) else move()
     }
 
     // getNewLocation randomly selects and returns a nearby tile
@@ -27,16 +28,30 @@ abstract class Enemy(hp: Int, atk: Int,def: Int, sym: Char, pos: Position, board
         pos = floorPiece.position.copy()
     }
 
+    // getPlayerInRange determines if the player is close enough for the enemy to attack and returns the player if so
+    fun getPlayerInRange(): Player?{
+        val attackRadius = board.oneBlockRadius(board.getFloorPiece(pos.row,pos.col) as Tile)
+
+        // see if player is withing a one block radius
+        for (tile in attackRadius){
+            if(tile.boardPiece is Player){
+                return tile.boardPiece as Player
+            }
+        }
+        return null
+    }
+
     // move find and moves "this" to a new tile if possible.
     open fun move(){
-        val floorPiece = getNewLocation()
-        if(floorPiece is Tile && floorPiece.toString() != "+" && floorPiece.isEmpty){
-            walk(floorPiece)
-        }
+            val floorPiece = getNewLocation()
+            if (floorPiece is Tile && floorPiece.toString() != "+" && floorPiece.isEmpty) {
+                walk(floorPiece)
+            }
     }
 
     fun attack(creature: Creature) {
-        TODO("Not yet implemented")
+        creature.damage(this.atk)
+        throw DamageMsg("The creature damaged you")
     }
 }
 

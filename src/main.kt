@@ -1,7 +1,6 @@
 import java.io.File
 import java.lang.Exception
 import kotlin.random.Random
-import kotlin.reflect.typeOf
 
 val randGen = Random(8472) // seed 8472 for testing purposes
 
@@ -66,7 +65,6 @@ class Board{
     init {
         spawnEnemies()
         spawnItems()
-        commandLine()
     }
 
     // isHorizontalWall determines if the piece at i in row is the top or bottom wall of a chamber.
@@ -190,11 +188,6 @@ class Board{
             player.attach(enemy)
         }
     }
-
-    private fun isUnoccupied(piece: Piece): Boolean{
-        return piece is Tile && piece.isEmpty
-    }
-
     // oneBlockRadius finds all Tile objects that are in a one block radius of tile
     fun oneBlockRadius(tile: Tile): MutableList<Tile>{
 
@@ -209,13 +202,13 @@ class Board{
 
             // row above
             if (col >= 0 && topRow >= 0 && col < grid[0].size && topRow < grid.size &&
-                isUnoccupied(grid[topRow][col])){
+                grid[topRow][col] is Tile){
                     tiles.add(grid[topRow][col] as Tile)
             }
 
             // row below
             if (col >= 0 && bottomRow >= 0 && col < grid[0].size && bottomRow < grid.size &&
-                isUnoccupied(grid[bottomRow][col])){
+                grid[bottomRow][col] is Tile){
                 tiles.add(grid[bottomRow][col] as Tile)
             }
         }
@@ -223,14 +216,14 @@ class Board{
         // check left of tile
         val colLeft = pos.col - 1
         if (colLeft >= 0 && colLeft < grid[0].size &&
-                isUnoccupied(grid[pos.row][colLeft])){
+                grid[pos.row][colLeft] is Tile){
             tiles.add(grid[pos.row][colLeft] as Tile)
         }
 
         // check neighbour right of cell
         val colRight = pos.col + 1
         if (colRight >= 0 && colRight < grid[0].size &&
-            isUnoccupied(grid[pos.row][colRight])){
+            grid[pos.row][colRight] is Tile){
             tiles.add(grid[pos.row][colRight] as Tile)
         }
 
@@ -249,8 +242,8 @@ class Board{
                     in 6..7 -> Gold(2) // probability 2/8
                     else -> {
                         // spawn dragon to protect large gold horde
-                        val blockRadius =  oneBlockRadius(tile)
-                        if (blockRadius.isEmpty()) println("ERROR") //TODO make this throw something
+                        val blockRadius =  oneBlockRadius(tile).filter { it.isEmpty }
+                        if (blockRadius.isEmpty()) throw Exception("ERROR No room for dragon")
                         val dragonTile = blockRadius.random(randGen)
                         val dragon = Dragon(dragonTile.position,tile,this)
                         dragonTile.placePiece(dragon)
@@ -317,7 +310,7 @@ class Board{
         return printRow
     }
 
-    private fun commandLine(){
+    fun commandLine(): String{
 
         while(true) {
             // print player stats
@@ -332,7 +325,7 @@ class Board{
 
             // get command
             print("Action (h for help): ")
-            val line: List<String> = readLine()?.split(" ") ?: listOf("h")
+            val line: List<String> = readLine()?.split(" ") ?: return "EOF"
             val cmd: String = line[0]
             val param1: String = if (line.size == 2) line[1] else ""
 
@@ -341,7 +334,7 @@ class Board{
                 when (cmd) {
                     "no", "ne", "ea", "se", "so", "sw", "we", "nw" -> player.move(cmd)
 
-                    "q" -> break
+                    "q" -> return "quit"
 
                     "a" -> player.attack(param1)
 
@@ -352,13 +345,30 @@ class Board{
                         }
                     }
                 }
+            } catch (e: GameOver){
+                print(this)
+                println(e.message)
+                return "game over"
             } catch (e: GameException) {
-                msg = (e.message ?: e.toString()) + "\n"
+                msg += (e.message ?: e.toString()) + "\n"
             }
         }
     }
 }
 
 fun main(){
-    Board()
+    while(true){
+        val board = Board()
+        val endType = board.commandLine()
+
+        // End Program
+        if (endType == "quit" || endType == "EOF") return
+
+        // Replay?
+        println("XXX Game Over XXX")
+        print("Play again? (y)es, (n)o")
+        val ans = readLine()
+
+        if (ans == "n" || ans == null) return
+    }
 }

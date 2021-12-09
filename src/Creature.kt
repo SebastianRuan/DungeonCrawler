@@ -20,13 +20,17 @@ abstract class Creature(hp: Int, val atk: Int, val def: Int, symbol: Char,
 
         val damageDealt = ceil((100/(100.0 + def)) * atk).toInt()
         hp -= damageDealt
-        if (hp < 0){
+        if (hp <= 0){
             if (this is Enemy){
                 throw KillMsg("You did $damageDealt damage and killed the creature!")
             } else {
-                TODO("End Game")
+                throw GameOver("You took $damageDealt damage and DIED!")
             }
         }
-        throw DamageMsg("You did $damageDealt damage.")
+        if (this is Enemy){
+            throw DamageMsg("You did $damageDealt damage.")
+        } else {
+            throw DamageMsg("You took $damageDealt damage.")
+        }
     }
 }
