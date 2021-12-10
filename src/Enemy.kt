@@ -50,8 +50,11 @@ abstract class Enemy(hp: Int, atk: Int,def: Int, sym: Char, pos: Position, board
     }
 
     protected fun attack(creature: Creature) {
+        val diceRoll = randGen.nextInt(1,10)
+        if(diceRoll <= 5){ // swing and a miss
+            throw DamageMsg("The creature attacked you and ... missed!")
+        }
         creature.damage(this.atk)
-        throw DamageMsg("The creature damaged you")
     }
 }
 
