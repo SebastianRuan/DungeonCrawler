@@ -14,7 +14,8 @@ abstract class Creature(hp: Int, val atk: Int, val def: Int, symbol: Char,
     */
     val maxHP = hp
     var hp = hp
-        private set
+        set(value) = if (value > maxHP) field = maxHP else field = value
+
 
     open fun damage(atk: Int){
 
@@ -28,9 +29,9 @@ abstract class Creature(hp: Int, val atk: Int, val def: Int, symbol: Char,
             }
         }
         if (this is Enemy){
-            throw DamageMsg("You did $damageDealt damage.")
+            throw DamageMsg("You did $damageDealt damage.", damageDealt)
         } else {
-            throw DamageMsg("You took $damageDealt damage.")
+            throw DamageMsg("You took $damageDealt damage.", damageDealt)
         }
     }
 }

@@ -49,17 +49,24 @@ abstract class Enemy(hp: Int, atk: Int,def: Int, sym: Char, pos: Position, board
             }
     }
 
-    protected fun attack(creature: Creature) {
+    protected open fun attack(creature: Creature) {
         val diceRoll = randGen.nextInt(1,10)
         if(diceRoll <= 5){ // swing and a miss
-            throw DamageMsg("The creature attacked you and ... missed!")
+            throw DamageMsg("The creature attacked you and ... missed!", 0)
         }
         creature.damage(this.atk)
     }
 }
 
 class Vampire(pos:Position, board:Board): Enemy(50, 25, 25, 'V', pos,board){
-
+    override fun attack(creature: Creature) {
+        try {
+            super.attack(creature)
+        } catch (msg: DamageMsg){
+            hp += (msg.damage * 0.25).toInt()  // Vampire absorb life from player
+            throw msg
+        }
+    }
 }
 
 class Werewolf(pos:Position, board:Board): Enemy(120, 30, 5, 'W', pos,board){

@@ -76,7 +76,7 @@ abstract class Player(hp: Int,atk: Int, def: Int, position: Position, board: Boa
                 try {
                     notifyAllObservers()
                 }catch (playerDamaged: DamageMsg){
-                    throw DamageMsg("${enemyDamaged.message}\n${playerDamaged.message}")
+                    throw DamageMsg("${enemyDamaged.message}\n${playerDamaged.message}", -1)
                 }catch (DEATH: GameOver){
                     throw GameOver("${enemyDamaged.message}\n${DEATH.message}")
                 }
@@ -130,6 +130,6 @@ class PlayerFactory{
 
 open class GameException(message: String): Exception(message)
 class InvalidMove(message: String) : GameException(message)
-class DamageMsg(message: String) : GameException(message)
+class DamageMsg(message: String, val damage: Int) : GameException(message)
 class KillMsg(message: String) : GameException(message)
 class GameOver(message: String) : GameException(message)
