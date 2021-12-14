@@ -14,11 +14,10 @@ abstract class Creature(hp: Int, val atk: Int, val def: Int, symbol: Char,
     */
     val maxHP = hp
     var hp = hp
-        set(value) = if (value > maxHP) field = maxHP else field = value
+        protected set(value) = if (value > maxHP) field = maxHP else field = value
 
 
     open fun damage(atk: Int){
-
         val damageDealt = ceil((100/(100.0 + def)) * atk).toInt()
         hp -= damageDealt
         if (hp <= 0){

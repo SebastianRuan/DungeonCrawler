@@ -49,19 +49,23 @@ abstract class Enemy(hp: Int, atk: Int,def: Int, sym: Char, pos: Position, board
             }
     }
 
-    protected open fun attack(creature: Creature) {
+    protected fun rollToHit(){
         val diceRoll = randGen.nextInt(1,10)
         if(diceRoll <= 5){ // swing and a miss
             throw DamageMsg("The creature attacked you and ... missed!", 0)
         }
-        creature.damage(this.atk)
+    }
+
+    protected open fun attack(player: Player) {
+        rollToHit()
+        player.damage(this.atk)
     }
 }
 
 class Vampire(pos:Position, board:Board): Enemy(50, 25, 25, 'V', pos,board){
-    override fun attack(creature: Creature) {
+    override fun attack(player: Player) {
         try {
-            super.attack(creature)
+            super.attack(player)
         } catch (msg: DamageMsg){
             hp += (msg.damage * 0.25).toInt()  // Vampire absorb life from player
             throw msg
@@ -78,7 +82,17 @@ class Troll(pos:Position, board:Board): Enemy(120, 25, 15, 'T', pos,board){
 }
 
 class Goblin(pos:Position, board:Board): Enemy(70, 5, 10, 'N', pos,board){
-
+    override fun attack(player: Player) {
+        rollToHit()
+        player.loseGold(randGen.nextInt(1,3)) // steal gold
+        try {
+            player.damage(atk)
+        } catch (e: GameOver){
+            throw GameOver(e.message + "\nThe Goblin also stole some gold from your dead body.")
+        } catch (e: DamageMsg){
+            throw DamageMsg(e.message + "\nThe Goblin stole some gold from you.", e.damage)
+        }
+    }
 }
 
 class Merchant(pos:Position, board:Board): Enemy(30, 70, 5, 'M', pos,board){

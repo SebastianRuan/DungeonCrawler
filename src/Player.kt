@@ -20,7 +20,7 @@ abstract class Player(hp: Int,atk: Int, def: Int, position: Position, board: Boa
      * gold: the amount of money the player has
      */
     var gold = 0
-        private set
+        private set(value) = if (value < 0) field = 0 else field = value
     override val observers = mutableListOf<Observer>()
 
     // dirToTile converts string direction (no, so, ea, etc) to a piece in specified direction
@@ -94,7 +94,9 @@ abstract class Player(hp: Int,atk: Int, def: Int, position: Position, board: Boa
             throw InvalidMove("Cannot attack a wall.")
         }
     }
-
+    fun loseGold(lost: Int){
+        gold -= lost
+    }
 }
 
 class Human(pos: Position, board: Board): Player(140, 20, 20, pos, board) {
