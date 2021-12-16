@@ -125,7 +125,32 @@ class Dragon(pos:Position,private val horde: Tile, board:Board): Enemy(150, 20, 
 }
 
 class Phoenix(pos:Position, board:Board): Enemy(50, 35, 20, 'X', pos,board){
+    private var reborn = false
 
+    private fun rebirth(){
+        hp = maxHP
+        reborn = true
+        throw DamageMsg(
+            "You kill the Phoenix. It explodes in a flash of flame. " +
+                    "But wait... \nIt seems to be rising from the ashes." +
+                    " It is REBORN!!",
+            0
+        )
+    }
+
+
+    override fun damage(atk: Int) {
+        try {
+            super.damage(atk)
+        } catch (e: KillMsg){
+            val diceRoll = randGen.nextInt(1,10)
+            if(diceRoll <= 5 || reborn ){ // swing and a miss
+                throw e
+            } else {
+                rebirth()
+            }
+        }
+    }
 }
 
 class EnemyFactory{
