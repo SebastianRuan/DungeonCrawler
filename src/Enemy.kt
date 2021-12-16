@@ -79,6 +79,13 @@ class Werewolf(pos:Position, board:Board): Enemy(120, 30, 5, 'W', pos,board){
 
 class Troll(pos:Position, board:Board): Enemy(120, 25, 15, 'T', pos,board){
 
+    override fun move() {
+        super.move()
+        val diceRoll = randGen.nextInt(1,10)
+        if(diceRoll > 5){ // swing and a miss
+            hp += 10
+        }
+    }
 }
 
 class Goblin(pos:Position, board:Board): Enemy(70, 5, 10, 'N', pos,board){
@@ -103,11 +110,11 @@ class Merchant(pos:Position, board:Board): Enemy(30, 70, 5, 'M', pos,board){
 
     override fun update() {
         val player = getPlayerInRange()
-        if (player != null && hostile) attack(player) else move()
+        if (player != null && hostile) attack(player) else move()  // only attack if hostile
     }
 
     override fun damage(atk: Int) {
-        hostile = true
+        hostile = true     // turn hostile when damageed
         super.damage(atk)
     }
 }
@@ -117,6 +124,7 @@ class Dragon(pos:Position,private val horde: Tile, board:Board): Enemy(150, 20, 
     override fun move(){
         val floorPiece = getNewLocation()
 
+        // don't move away from horde of gold
         if(floorPiece is Tile && floorPiece.toString() != "+" && floorPiece.isEmpty &&
             floorPiece in board.oneBlockRadius(horde)){
             walk(floorPiece)
@@ -127,6 +135,7 @@ class Dragon(pos:Position,private val horde: Tile, board:Board): Enemy(150, 20, 
 class Phoenix(pos:Position, board:Board): Enemy(50, 35, 20, 'X', pos,board){
     private var reborn = false
 
+    // rebirth restores the phoenix to full health and sends a message to the console
     private fun rebirth(){
         hp = maxHP
         reborn = true
@@ -142,9 +151,9 @@ class Phoenix(pos:Position, board:Board): Enemy(50, 35, 20, 'X', pos,board){
     override fun damage(atk: Int) {
         try {
             super.damage(atk)
-        } catch (e: KillMsg){
+        } catch (e: KillMsg){                              // chance of rebirth
             val diceRoll = randGen.nextInt(1,10)
-            if(diceRoll <= 5 || reborn ){ // swing and a miss
+            if(diceRoll <= 5 || reborn ){
                 throw e
             } else {
                 rebirth()
