@@ -49,27 +49,25 @@ abstract class Enemy(hp: Int, atk: Int,def: Int, sym: Char, pos: Position, board
             }
     }
 
-    protected fun rollToHit(){
+    protected fun rollToHit(): Boolean{
         val diceRoll = randGen.nextInt(1,10)
-        if(diceRoll <= 5){ // swing and a miss
-            throw DamageMsg("The creature attacked you and ... missed!", 0)
+        if(diceRoll <= 5){                                     // swing and a miss
+            board.addMessage("The creature attacked you and ... missed!")
+            return false
         }
+        return true
     }
 
-    protected open fun attack(player: Player) {
-        rollToHit()
-        player.damage(this.atk)
+    protected open fun attack(player: Player): Strike {
+        return if(rollToHit())  player.damage(this.atk) else Strike(0, false)
     }
 }
 
 class Vampire(pos:Position, board:Board): Enemy(50, 25, 25, 'V', pos,board){
-    override fun attack(player: Player) {
-        try {
-            super.attack(player)
-        } catch (msg: DamageMsg){
-            hp += (msg.damage * 0.25).toInt()  // Vampire absorb life from player
-            throw msg
-        }
+    override fun attack(player: Player): Strike{
+        val strike: Strike = super.attack(player)
+        hp += (strike.damageAmt * 0.25).toInt()  // Vampire absorb life from player
+        return strike
     }
 }
 
@@ -89,16 +87,19 @@ class Troll(pos:Position, board:Board): Enemy(120, 25, 15, 'T', pos,board){
 }
 
 class Goblin(pos:Position, board:Board): Enemy(70, 5, 10, 'N', pos,board){
-    override fun attack(player: Player) {
-        rollToHit()
-        player.loseGold(randGen.nextInt(1,3)) // steal gold
-        try {
-            player.damage(atk)
-        } catch (e: GameOver){
-            throw GameOver(e.message + "\nThe Goblin also stole some gold from your dead body.")
-        } catch (e: DamageMsg){
-            throw DamageMsg(e.message + "\nThe Goblin stole some gold from you.", e.damage)
+    override fun attack(player: Player): Strike {
+        if (rollToHit()) {
+            player.loseGold(randGen.nextInt(1, 3)) // steal gold
+            try {
+                val strike = player.damage(atk)
+                board.addMessage("The Goblin stole some gold from you.")
+                return strike
+            } catch (e: GameOver) {
+                board.addMessage("The Goblin also stole some gold from your dead body.")
+                throw e
+            }
         }
+        return Strike(0,false)
     }
 }
 
@@ -113,9 +114,9 @@ class Merchant(pos:Position, board:Board): Enemy(30, 70, 5, 'M', pos,board){
         if (player != null && hostile) attack(player) else move()  // only attack if hostile
     }
 
-    override fun damage(atk: Int) {
-        hostile = true     // turn hostile when damageed
-        super.damage(atk)
+    override fun damage(atk: Int): Strike {
+        hostile = true     // turn hostile when damaged
+        return super.damage(atk)
     }
 }
 
@@ -139,26 +140,21 @@ class Phoenix(pos:Position, board:Board): Enemy(50, 35, 20, 'X', pos,board){
     private fun rebirth(){
         hp = maxHP
         reborn = true
-        throw DamageMsg(
+        board.addMessage(
             "You kill the Phoenix. It explodes in a flash of flame. " +
                     "But wait... \nIt seems to be rising from the ashes." +
-                    " It is REBORN!!",
-            0
+                    " It is REBORN!!"
         )
+        board.player.attach(this)
     }
 
-
-    override fun damage(atk: Int) {
-        try {
-            super.damage(atk)
-        } catch (e: KillMsg){                              // chance of rebirth
-            val diceRoll = randGen.nextInt(1,10)
-            if(diceRoll <= 5 || reborn ){
-                throw e
-            } else {
-                rebirth()
-            }
+    override fun damage(atk: Int): Strike {
+        val strike = super.damage(atk)
+        if(hp <= 0 && randGen.nextInt(1,10) >= 5 && !reborn){ // chance of rebirth
+            rebirth()
+            return Strike(0, false)
         }
+        return strike
     }
 }
 

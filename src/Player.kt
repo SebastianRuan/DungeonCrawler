@@ -55,7 +55,8 @@ abstract class Player(hp: Int,atk: Int, def: Int, position: Position, board: Boa
             observers.clear()
             board.nextLevel()
         } else {
-            throw InvalidMove("Cannot move there.")
+            board.addMessage("Cannot move there.")
+            return
         }
         
         notifyAllObservers()
@@ -65,35 +66,26 @@ abstract class Player(hp: Int,atk: Int, def: Int, position: Position, board: Boa
     fun attack(direction: String) {
         val floorPiece = dirToTile(direction)
         if(floorPiece is Tile && floorPiece.boardPiece is Enemy){           // attack successfully targets an enemy
-            try {
-                (floorPiece.boardPiece as Enemy).damage(atk)
-            } catch (e: KillMsg){
+            val playersAttack: Strike = (floorPiece.boardPiece as Enemy).damage(atk)
+            if(playersAttack.slain){
                 gold += 1
-                this.detach(floorPiece.boardPiece as Enemy)
                 floorPiece.clear()
-                throw e
-            } catch (enemyDamaged: DamageMsg){
-                try {
-                    notifyAllObservers()
-                }catch (playerDamaged: DamageMsg){
-                    throw DamageMsg("${enemyDamaged.message}\n${playerDamaged.message}", -1)
-                }catch (DEATH: GameOver){
-                    throw GameOver("${enemyDamaged.message}\n${DEATH.message}")
-                }
             }
+            notifyAllObservers()
 
         } else if (floorPiece is Tile && !floorPiece.isEmpty){              // attack incorrectly targets an item
             val item = when(floorPiece.boardPiece){
                 is Potion -> "potions"
                 else -> "gold"
             }
-            throw InvalidMove("Cannot attack $item.")
+            board.addMessage("Cannot attack $item.")
         } else if (floorPiece is Tile) {
-            throw InvalidMove("Cannot attack an empty tile.")
+            board.addMessage("Cannot attack an empty tile.")
         } else {
-            throw InvalidMove("Cannot attack a wall.")
+            board.addMessage("Cannot attack a wall.")
         }
     }
+
     fun loseGold(lost: Int){
         gold -= lost
     }
@@ -130,8 +122,4 @@ class PlayerFactory{
     }
 }
 
-open class GameException(message: String): Exception(message)
-class InvalidMove(message: String) : GameException(message)
-class DamageMsg(message: String, val damage: Int) : GameException(message)
-class KillMsg(message: String) : GameException(message)
-class GameOver(message: String) : GameException(message)
+class GameOver(message: String) : Exception(message)

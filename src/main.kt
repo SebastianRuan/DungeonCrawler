@@ -41,8 +41,7 @@ class Board{
     private val grid  = mutableListOf<List<Piece>>()
     private val chambers = mutableListOf<Chamber>()
     private var floor = 1
-    private var msg = ""
-
+    private var msgQ = ArrayDeque<String>()
     init {
         var row = 0
         File("src\\map.txt").forEachLine {
@@ -60,7 +59,7 @@ class Board{
         createChambers()
     }
 
-    private val player = spawnPlayer()
+    val player = spawnPlayer()
 
     init {
         spawnEnemies()
@@ -281,7 +280,7 @@ class Board{
 
     // nextLevel clears and sets the board up for the next level of the dungeon
     fun nextLevel(): Position{
-        msg = "You descend deeper!\n"
+        msgQ.addLast("You descend deeper!\n")
         floor++
 
         // Clear board
@@ -311,6 +310,18 @@ class Board{
         return printRow
     }
 
+    // addMessage pushes msg to the end of the message queue
+    fun addMessage(msg: String){
+        msgQ.addLast(msg)
+    }
+
+    // printMessages print any and all errors or info from the previous cmd
+    private fun printMessages(){
+        while (!msgQ.isEmpty()){
+            println(msgQ.removeFirst())
+        }
+    }
+
     fun commandLine(): String{
 
         while(true) {
@@ -320,9 +331,7 @@ class Board{
             println("Hp: ${player.hp}  Atk: ${player.atk}  Def: ${player.def} Gold: ${player.gold}")
             print(this)
 
-            // print any errors or info from the previous cmd
-            print(msg)
-            msg = ""
+            printMessages()
 
             // get command
             print("Action (h for help): ")
@@ -339,19 +348,19 @@ class Board{
 
                     "a" -> player.attack(param1)
 
-                    "h" -> { //TODO: make this else?
+                    else -> {
                         //TODO make sure the file reading works with other IDEs
-                        msg = File("src/help.txt").readLines().fold(""){
+                        msgQ.addLast(
+                            File("src/help.txt").readLines().fold(""){
                                 x:String, y: String -> x+y+"\n"
-                        }
+                            }
+                        )
                     }
                 }
             } catch (e: GameOver){
                 print(this)
-                println(e.message)
+                printMessages()
                 return "game over"
-            } catch (e: GameException) {
-                msg += (e.message ?: e.toString()) + "\n"
             }
         }
     }
