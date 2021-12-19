@@ -20,7 +20,7 @@ abstract class Player(hp: Int,atk: Int, def: Int, position: Position, board: Boa
      * gold: the amount of money the player has
      */
     var gold = 0
-        private set(value) = if (value < 0) field = 0 else field = value
+        protected set(value) = if (value < 0) field = 0 else field = value
     override val observers = mutableListOf<Observer>()
 
     // dirToTile converts string direction (no, so, ea, etc) to a piece in specified direction
@@ -39,7 +39,7 @@ abstract class Player(hp: Int,atk: Int, def: Int, position: Position, board: Boa
         }
     }
 
-    fun move(direction: String){    
+    open fun move(direction: String){    
 
         val floorPiece = dirToTile(direction)
         // Move player if possible
@@ -63,7 +63,7 @@ abstract class Player(hp: Int,atk: Int, def: Int, position: Position, board: Boa
     }
 
     // attack damages an enemy in direction
-    fun attack(direction: String) {
+    open fun attack(direction: String) {
         val floorPiece = dirToTile(direction)
         if(floorPiece is Tile && floorPiece.boardPiece is Enemy){           // attack successfully targets an enemy
             val playersAttack: Strike = (floorPiece.boardPiece as Enemy).damage(atk)
@@ -96,7 +96,20 @@ class Human(pos: Position, board: Board): Player(140, 20, 20, pos, board) {
 }
 
 class Dwarf(pos: Position, board: Board): Player(100, 20, 30, pos, board) {
+    private fun doubleGold( superFn: () -> Unit){
+        val prevGold = gold
+        superFn()
+        gold += gold - prevGold // double gold for dwarves
+    }
+    
+    
+    override fun move(direction: String) {
+        doubleGold{super.move(direction)}
+    }
 
+    override fun attack(direction: String) {
+        doubleGold{super.attack(direction)}
+    }
 }
 
 class Elf(pos: Position, board: Board): Player(140, 30, 10, pos, board) {
