@@ -117,7 +117,20 @@ class Elf(pos: Position, board: Board): Player(140, 30, 10, pos, board) {
 }
 
 class Orc(pos: Position, board: Board): Player(180, 30, 25, pos, board) {
+    private fun doubleGold( superFn: () -> Unit){
+        val prevGold = gold
+        superFn()
+        gold -= (gold - prevGold)/2 // halve gold for Orcs
+    }
 
+
+    override fun move(direction: String) {
+        doubleGold{super.move(direction)}
+    }
+
+    override fun attack(direction: String) {
+        doubleGold{super.attack(direction)}
+    }
 }
 
 class PlayerFactory{
