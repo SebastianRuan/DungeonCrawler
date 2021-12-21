@@ -59,7 +59,8 @@ class Board{
         createChambers()
     }
 
-    val player = spawnPlayer()
+    var player = spawnPlayer()
+        private set
 
     init {
         spawnEnemies()
@@ -321,6 +322,17 @@ class Board{
             println(msgQ.removeFirst())
         }
     }
+    
+    private fun decorate(direction: String): Player{
+        val floorPiece = player.dirToTile(direction) as Tile
+        val potion = floorPiece.boardPiece as Potion
+        if (potion.kind == PotionType.H){
+            player.drink(potion.amt)
+            msgQ.addLast("You drink a red potion giving you ${potion.amt} health.")
+        } 
+        floorPiece.clear()
+        return player
+    }
 
     fun commandLine(): String{
 
@@ -347,6 +359,12 @@ class Board{
                     "q" -> return "quit"
 
                     "a" -> player.attack(param1)
+                    
+                    "u" -> if (player.dirToTile(param1) is Tile && (player.dirToTile(param1) as Tile).boardPiece is Potion) {
+                        player = decorate(param1)
+                    } else {
+                        msgQ.addLast("There is no potion to the $param1")
+                    }
 
                     else -> {
                         //TODO make sure the file reading works with other IDEs

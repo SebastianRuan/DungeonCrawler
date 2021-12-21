@@ -24,7 +24,7 @@ abstract class Player(hp: Int,atk: Int, def: Int, position: Position, board: Boa
     override val observers = mutableListOf<Observer>()
 
     // dirToTile converts string direction (no, so, ea, etc) to a piece in specified direction
-    private fun dirToTile(direction:String): Piece{
+    fun dirToTile(direction:String): Piece{
         // Select tile
         val (row, col) = pos
         return when(direction){
@@ -38,7 +38,6 @@ abstract class Player(hp: Int,atk: Int, def: Int, position: Position, board: Boa
             else -> board.getFloorPiece(row-1, col-1)
         }
     }
-
     open fun move(direction: String){    
 
         val floorPiece = dirToTile(direction)
@@ -88,6 +87,10 @@ abstract class Player(hp: Int,atk: Int, def: Int, position: Position, board: Boa
 
     fun loseGold(lost: Int){
         gold -= lost
+    }
+    
+    fun drink(hp: Int){
+        this.hp += hp
     }
 }
 
