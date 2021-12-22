@@ -29,13 +29,13 @@ abstract class Enemy(hp: Int, atk: Int,def: Int, sym: Char, pos: Position, board
     }
 
     // getPlayerInRange determines if the player is close enough for the enemy to attack and returns the player if so
-    protected fun getPlayerInRange(): Player?{
+    protected fun getPlayerInRange(): BasePlayer?{
         val attackRadius = board.oneBlockRadius(board.getFloorPiece(pos.row,pos.col) as Tile)
 
         // see if player is withing a one block radius
         for (tile in attackRadius){
-            if(tile.boardPiece is Player){
-                return tile.boardPiece as Player
+            if(tile.boardPiece is BasePlayer){
+                return tile.boardPiece as BasePlayer
             }
         }
         return null
@@ -58,13 +58,13 @@ abstract class Enemy(hp: Int, atk: Int,def: Int, sym: Char, pos: Position, board
         return true
     }
 
-    protected open fun attack(player: Player): Strike {
+    protected open fun attack(player: BasePlayer): Strike {
         return if(rollToHit())  player.damage(this.atk) else Strike(0, false)
     }
 }
 
 class Vampire(pos:Position, board:Board): Enemy(50, 25, 25, 'V', pos,board){
-    override fun attack(player: Player): Strike{
+    override fun attack(player: BasePlayer): Strike{
         val strike: Strike = super.attack(player)
         hp += (strike.damageAmt * 0.25).toInt()  // Vampire absorb life from player
         return strike
@@ -87,7 +87,7 @@ class Troll(pos:Position, board:Board): Enemy(120, 25, 15, 'T', pos,board){
 }
 
 class Goblin(pos:Position, board:Board): Enemy(70, 5, 10, 'N', pos,board){
-    override fun attack(player: Player): Strike {
+    override fun attack(player: BasePlayer): Strike {
         if (rollToHit()) {
             player.loseGold(randGen.nextInt(1, 3)) // steal gold
             try {

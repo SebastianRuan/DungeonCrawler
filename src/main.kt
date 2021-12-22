@@ -149,7 +149,7 @@ class Board{
     }
 
     // spawnPlayer asks the user for the race they want to be, then creates and places it on the board
-    private fun spawnPlayer():Player{
+    private fun spawnPlayer(): Player{
 
         val stairChamber = spawnStaircase()
 
@@ -323,15 +323,18 @@ class Board{
         }
     }
     
-    private fun decorate(direction: String): Player{
+    private fun decoratePlayer(direction: String){
         val floorPiece = player.dirToTile(direction) as Tile
         val potion = floorPiece.boardPiece as Potion
+        floorPiece.clear()
         if (potion.kind == PotionType.H){
             player.drink(potion.amt)
-            msgQ.addLast("You drink a red potion giving you ${potion.amt} health.")
-        } 
-        floorPiece.clear()
-        return player
+            msgQ.addLast("You drink a red coloured potion giving you ${potion.amt} health.")
+        } else if (potion.kind == PotionType.A){
+            msgQ.addLast("You drink a teal coloured potion changing your attack by ${potion.amt}.")
+            player = AtkDec(player, potion.amt)
+        }
+        
     }
 
     fun commandLine(): String{
@@ -339,8 +342,8 @@ class Board{
         while(true) {
             // print player stats
             println("\n\n")
-            println(String.format("%s %59s", "Player Type: ${player.javaClass.name}", "floor: $floor"))
-            println("Hp: ${player.hp}  Atk: ${player.atk}  Def: ${player.def} Gold: ${player.gold}")
+            println(String.format("%s %59s", player.printType(), "floor: $floor"))
+            player.printStats()
             print(this)
 
             printMessages()
@@ -360,8 +363,9 @@ class Board{
 
                     "a" -> player.attack(param1)
                     
-                    "u" -> if (player.dirToTile(param1) is Tile && (player.dirToTile(param1) as Tile).boardPiece is Potion) {
-                        player = decorate(param1)
+                    "u" -> if (player.dirToTile(param1) is Tile && 
+                        (player.dirToTile(param1) as Tile).boardPiece is Potion) {
+                        decoratePlayer(param1)
                     } else {
                         msgQ.addLast("There is no potion to the $param1")
                     }

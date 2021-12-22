@@ -11,9 +11,21 @@ interface Subject{
     }
 }
 
+// Player interface contains all methodes a player character is allowed to call
+interface Player: Subject{
+    fun move(direction: String)
+    fun attack(direction: String)
+    fun attack(direction: String, atkBuff: Int) // reserved for the decorator TODO: try to remove
+    fun loseGold(lost: Int)
+    fun drink(hp: Int)
+    fun dirToTile(direction: String): Piece
+    fun printStats()
+    fun printStats(atkBuff: Int, defBuff: Int) // reserved for the decorator TODO: try to remove
+    fun printType(): String
+}
 
-abstract class Player(hp: Int,atk: Int, def: Int, position: Position, board: Board):
-    Creature(hp, atk, def,'@', position, board), Subject {
+abstract class BasePlayer(hp: Int, atk: Int, def: Int, position: Position, board: Board):
+    Creature(hp, atk, def,'@', position, board), Player {
     /*
      * Player is the general class for all possible races
      *
@@ -24,7 +36,7 @@ abstract class Player(hp: Int,atk: Int, def: Int, position: Position, board: Boa
     override val observers = mutableListOf<Observer>()
 
     // dirToTile converts string direction (no, so, ea, etc) to a piece in specified direction
-    fun dirToTile(direction:String): Piece{
+    override fun dirToTile(direction:String): Piece{
         // Select tile
         val (row, col) = pos
         return when(direction){
@@ -38,7 +50,7 @@ abstract class Player(hp: Int,atk: Int, def: Int, position: Position, board: Boa
             else -> board.getFloorPiece(row-1, col-1)
         }
     }
-    open fun move(direction: String){    
+    override fun move(direction: String){    
 
         val floorPiece = dirToTile(direction)
         // Move player if possible
@@ -62,7 +74,7 @@ abstract class Player(hp: Int,atk: Int, def: Int, position: Position, board: Boa
     }
 
     // attack damages an enemy in direction
-    open fun attack(direction: String) {
+    override fun attack(direction: String) {
         val floorPiece = dirToTile(direction)
         if(floorPiece is Tile && floorPiece.boardPiece is Enemy){           // attack successfully targets an enemy
             val playersAttack: Strike = (floorPiece.boardPiece as Enemy).damage(atk)
@@ -84,21 +96,128 @@ abstract class Player(hp: Int,atk: Int, def: Int, position: Position, board: Boa
             board.addMessage("Cannot attack a wall.")
         }
     }
+    
+    // Used in decorator to pass attack value
+    override fun attack(direction: String, atkBuff: Int){
+        atk += atkBuff
+        attack(direction)
+        atk -= atkBuff
+    }
+    
 
-    fun loseGold(lost: Int){
+    override fun loseGold(lost: Int){
         gold -= lost
     }
     
-    fun drink(hp: Int){
+    override fun drink(hp: Int){
         this.hp += hp
+    }
+
+    override fun printStats(){
+        println("Hp: $hp  Atk: $atk  Def: $def  Gold: $gold")
+    }
+
+    // printStats applies buffs before printing stats
+    override fun printStats(atkBuff: Int, defBuff: Int){
+        atk += atkBuff
+        def += defBuff
+        printStats()
+        atk -= atkBuff
+        def -= defBuff
+    }
+    
+    // printType gets the specific type of PC the user chose
+    override fun printType(): String {
+        return "Player Type: ${javaClass.name}"
+    }
+    
+}
+
+/*
+* Decorators
+*/
+
+abstract class PlayerDec(protected val player: Player): Player{
+    /*
+     * PlayerDec is the parent class for the decorator design pattern
+     *
+     * observers: DON'T USE TODO: see if i can get rid of this
+     */
+    
+     override val observers: MutableList<Observer>
+        get() = throw Exception("retrieved the wrong list of observers (in PlayerDec)")
+
+    override fun move(direction: String) {
+        player.move(direction)
+    }
+    override fun attack(direction: String) {
+        player.attack(direction)
+    }
+    
+    override fun attack(direction: String, atkBuff: Int){
+        player.attack(direction, atkBuff)
+    }
+
+    override fun drink(hp: Int) {
+        player.drink(hp)
+    }
+
+    override fun loseGold(lost: Int) {
+        player.loseGold(lost)
+    }
+
+    override fun dirToTile(direction: String): Piece {
+        return player.dirToTile(direction)
+    }
+
+    override fun printStats() {
+        return player.printStats()
+    }
+
+    override fun printType(): String {
+        return player.printType()
+    }
+
+}
+
+class AtkDec(player: Player, private val buff: Int): PlayerDec(player){
+    /*
+     * AtkDec imposes the buff or debuff of potions when attacking 
+     *
+     * gold: the amount of money the player has
+     */
+    
+    // attack used to maintain player interface
+    override fun attack(direction: String) {
+        player.attack(direction,buff)
+    }
+
+    // attack used to pass attack buff along decoration pipeline
+    override fun attack(direction: String, atkBuff: Int) {
+        player.attack(direction, atkBuff + buff)
+    }
+
+    // printStats used to maintain player interface
+    override fun printStats() {
+        return player.printStats(buff,0)
+    }
+
+    // printStats used to pass buff stats along decorator pipeline
+    override fun printStats(atkBuff: Int, defBuff: Int) {
+        player.printStats(atkBuff + buff, defBuff)
     }
 }
 
-class Human(pos: Position, board: Board): Player(140, 20, 20, pos, board) {
+
+/*
+* Player Children
+*/
+
+class Human(pos: Position, board: Board): BasePlayer(140, 20, 20, pos, board) {
 
 }
 
-class Dwarf(pos: Position, board: Board): Player(100, 20, 30, pos, board) {
+class Dwarf(pos: Position, board: Board): BasePlayer(100, 20, 30, pos, board) {
     private fun doubleGold( superFn: () -> Unit){
         val prevGold = gold
         superFn()
@@ -115,11 +234,11 @@ class Dwarf(pos: Position, board: Board): Player(100, 20, 30, pos, board) {
     }
 }
 
-class Elf(pos: Position, board: Board): Player(140, 30, 10, pos, board) {
+class Elf(pos: Position, board: Board): BasePlayer(140, 30, 10, pos, board) {
 
 }
 
-class Orc(pos: Position, board: Board): Player(180, 30, 25, pos, board) {
+class Orc(pos: Position, board: Board): BasePlayer(180, 30, 25, pos, board) {
     private fun doubleGold( superFn: () -> Unit){
         val prevGold = gold
         superFn()
@@ -141,7 +260,7 @@ class PlayerFactory{
     * PlayerFactory has the sole job of generating Player objects depending on what race the user chooses
     */
 
-    fun getPlayer(type: String, pos: Position,  board: Board):Player{
+    fun getPlayer(type: String, pos: Position,  board: Board):BasePlayer{
         return when(type){
             "e" -> Elf(pos, board)
             "d" -> Dwarf(pos,board)

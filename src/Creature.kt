@@ -2,7 +2,7 @@ import kotlin.math.ceil
 
 data class Strike(val damageAmt:Int, val slain:Boolean)
 
-abstract class Creature(hp: Int, val atk: Int, val def: Int, symbol: Char,
+abstract class Creature(hp: Int, atk: Int, def: Int, symbol: Char,
                         protected var pos: Position, protected val board: Board):Piece(symbol) {
     /*
     * Creature stores all of the properties of enemies and players.
@@ -14,9 +14,13 @@ abstract class Creature(hp: Int, val atk: Int, val def: Int, symbol: Char,
     * def: the resistance of an attack
     * board: a reference to the main board
     */
-    val maxHP = hp
-    var hp = hp
+    protected val maxHP = hp
+    protected var hp = hp
         protected set(value) = if (value > maxHP) field = maxHP else field = value
+    protected var atk = atk
+        set(value) = if (value < 0) field = 0 else field = value
+    protected var def = def
+        set(value) = if (value < 0) field = 0 else field = value
 
 
     //
