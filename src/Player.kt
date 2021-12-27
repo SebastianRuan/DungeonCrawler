@@ -186,8 +186,8 @@ abstract class PlayerDec(protected val player: Player): Player{
         return player.damage(atk)
     }
 
-    override fun damage(atk: Int, atkBuff: Int): Strike{
-        return player.damage(atk, atkBuff)
+    override fun damage(atk: Int, defBuff: Int): Strike{
+        return player.damage(atk, defBuff)
     }
 
     override fun drink(hp: Int) {
@@ -253,8 +253,8 @@ class DefDec(player: Player, private val buff: Int): PlayerDec(player){
     }
 
     // attack used to pass attack buff along decoration pipeline
-    override fun damage(atk: Int, atkBuff: Int): Strike {
-        return player.damage(atk, atkBuff + buff)
+    override fun damage(atk: Int, defBuff: Int): Strike {
+        return player.damage(atk, defBuff + buff)
     }
 
     // printStats used to maintain player interface
