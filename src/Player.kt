@@ -16,6 +16,8 @@ interface Player: Subject{
     fun move(direction: String)
     fun attack(direction: String)
     fun attack(direction: String, atkBuff: Int) // reserved for the decorator TODO: try to remove
+    fun damage(atk: Int): Strike
+    fun damage(atk: Int, defBuff: Int): Strike // reserved for the decorator TODO: try to remove
     fun loseGold(lost: Int)
     fun drink(hp: Int)
     fun dirToTile(direction: String): Piece
@@ -96,12 +98,34 @@ abstract class BasePlayer(hp: Int, atk: Int, def: Int, position: Position, board
             board.addMessage("Cannot attack a wall.")
         }
     }
-    
-    // Used in decorator to pass attack value
+
+    // attack(String, Int) overloads attack(String) so the decorator can pass its attack value in
     override fun attack(direction: String, atkBuff: Int){
         atk += atkBuff
         attack(direction)
         atk -= atkBuff
+    }
+
+
+    // damage determines the damage dealt with the attackers atk value. It also determines if the player has died and
+    // ends the game if so.
+    override fun damage(atk: Int): Strike {
+        val damageDealt = takeDamage(atk)
+        if (hp <= 0){
+            board.addMessage("You took $damageDealt damage and DIED!")
+            throw GameOver("")
+        }
+        
+        board.addMessage("You took $damageDealt damage.")
+        return Strike(damageDealt,false)
+    }
+
+    // damage(Int, Int) overloads damage(String) so the decorator can pass its defBuff value in
+    override fun damage(atk: Int, defBuff:Int): Strike{
+        def += defBuff
+        val dmg = damage(atk)
+        def -= defBuff
+        return dmg
     }
     
 
@@ -158,6 +182,14 @@ abstract class PlayerDec(protected val player: Player): Player{
         player.attack(direction, atkBuff)
     }
 
+    override fun damage(atk: Int): Strike {
+        return player.damage(atk)
+    }
+
+    override fun damage(atk: Int, atkBuff: Int): Strike{
+        return player.damage(atk, atkBuff)
+    }
+
     override fun drink(hp: Int) {
         player.drink(hp)
     }
@@ -182,9 +214,8 @@ abstract class PlayerDec(protected val player: Player): Player{
 
 class AtkDec(player: Player, private val buff: Int): PlayerDec(player){
     /*
-     * AtkDec imposes the buff or debuff of potions when attacking 
-     *
-     * gold: the amount of money the player has
+     * AtkDec imposes the buff or debuff of potions when attacking
+     * 
      */
     
     // attack used to maintain player interface
@@ -205,6 +236,35 @@ class AtkDec(player: Player, private val buff: Int): PlayerDec(player){
     // printStats used to pass buff stats along decorator pipeline
     override fun printStats(atkBuff: Int, defBuff: Int) {
         player.printStats(atkBuff + buff, defBuff)
+    }
+}
+
+
+
+class DefDec(player: Player, private val buff: Int): PlayerDec(player){
+    /*
+     * DefDec imposes the buff or debuff of potions when defending 
+     * 
+     */
+
+    // attack used to maintain player interface
+    override fun damage(atk: Int): Strike {
+        return player.damage(atk, buff)
+    }
+
+    // attack used to pass attack buff along decoration pipeline
+    override fun damage(atk: Int, atkBuff: Int): Strike {
+        return player.damage(atk, atkBuff + buff)
+    }
+
+    // printStats used to maintain player interface
+    override fun printStats() {
+        return player.printStats(0,buff)
+    }
+
+    // printStats used to pass buff stats along decorator pipeline
+    override fun printStats(atkBuff: Int, defBuff: Int) {
+        player.printStats(atkBuff, defBuff + buff)
     }
 }
 

@@ -23,25 +23,11 @@ abstract class Creature(hp: Int, atk: Int, def: Int, symbol: Char,
         set(value) = if (value < 0) field = 0 else field = value
 
 
-    //
-    open fun damage(atk: Int): Strike{
+    // takeDamage calculates damage based on the attackers atk value and returns the damage dealt
+    open fun takeDamage(atk: Int): Int{
         val damageDealt = ceil((100/(100.0 + def)) * atk).toInt()
         hp -= damageDealt
-        if (hp <= 0){
-            if (this is Enemy){
-                board.addMessage("You did $damageDealt damage and killed the creature!")
-                board.player.detach(this)
-                return Strike(damageDealt,true)
-            } else {
-                board.addMessage("You took $damageDealt damage and DIED!")
-                throw GameOver("")
-            }
-        }
-        if (this is Enemy){
-            board.addMessage("You did $damageDealt damage.")
-        } else {
-            board.addMessage("You took $damageDealt damage.")
-        }
-        return Strike(damageDealt,false)
+        return damageDealt
     }
+    
 }

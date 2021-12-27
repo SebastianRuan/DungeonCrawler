@@ -333,8 +333,10 @@ class Board{
         } else if (potion.kind == PotionType.A){
             msgQ.addLast("You drink a teal coloured potion changing your attack by ${potion.amt}.")
             player = AtkDec(player, potion.amt)
+        } else {
+            msgQ.addLast("You drink a green coloured potion changing your defence by ${potion.amt}.")
+            player = DefDec(player, potion.amt)
         }
-        
     }
 
     fun commandLine(): String{

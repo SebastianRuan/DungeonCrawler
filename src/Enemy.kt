@@ -11,7 +11,7 @@ abstract class Enemy(hp: Int, atk: Int,def: Int, sym: Char, pos: Position, board
 
     override fun update() {
         val player = getPlayerInRange()
-        if (player != null) attack(player) else move()
+        if (player != null) attack() else move()
     }
 
     // getNewLocation randomly selects and returns a nearby tile
@@ -58,14 +58,27 @@ abstract class Enemy(hp: Int, atk: Int,def: Int, sym: Char, pos: Position, board
         return true
     }
 
-    protected open fun attack(player: BasePlayer): Strike {
-        return if(rollToHit())  player.damage(this.atk) else Strike(0, false)
+    protected open fun attack(): Strike {
+        return if(rollToHit())  board.player.damage(this.atk) else Strike(0, false)
+    }
+    
+    // damage determines the damage dealt with the attakers atk value. It also determines if the enemy has died and
+    // processes this accordingly
+    open fun damage(atk: Int): Strike{
+        val damageDealt = takeDamage(atk)
+        if (hp <= 0){
+            board.addMessage("You did $damageDealt damage and killed the creature!")
+            board.player.detach(this)
+            return Strike(damageDealt,true)
+        }
+        board.addMessage("You did $damageDealt damage.")
+        return Strike(damageDealt,false)
     }
 }
 
 class Vampire(pos:Position, board:Board): Enemy(50, 25, 25, 'V', pos,board){
-    override fun attack(player: BasePlayer): Strike{
-        val strike: Strike = super.attack(player)
+    override fun attack(): Strike{
+        val strike: Strike = super.attack()
         hp += (strike.damageAmt * 0.25).toInt()  // Vampire absorb life from player
         return strike
     }
@@ -87,11 +100,11 @@ class Troll(pos:Position, board:Board): Enemy(120, 25, 15, 'T', pos,board){
 }
 
 class Goblin(pos:Position, board:Board): Enemy(70, 5, 10, 'N', pos,board){
-    override fun attack(player: BasePlayer): Strike {
+    override fun attack(): Strike {
         if (rollToHit()) {
-            player.loseGold(randGen.nextInt(1, 3)) // steal gold
+            board.player.loseGold(randGen.nextInt(1, 3)) // steal gold
             try {
-                val strike = player.damage(atk)
+                val strike = board.player.damage(atk)
                 board.addMessage("The Goblin stole some gold from you.")
                 return strike
             } catch (e: GameOver) {
@@ -111,7 +124,7 @@ class Merchant(pos:Position, board:Board): Enemy(30, 70, 5, 'M', pos,board){
 
     override fun update() {
         val player = getPlayerInRange()
-        if (player != null && hostile) attack(player) else move()  // only attack if hostile
+        if (player != null && hostile) attack() else move()  // only attack if hostile
     }
 
     override fun damage(atk: Int): Strike {
