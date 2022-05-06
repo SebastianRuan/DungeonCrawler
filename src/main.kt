@@ -323,20 +323,12 @@ class Board{
         }
     }
     
+    // decoratePlayer adds a potion's affects to the player
     private fun decoratePlayer(direction: String){
         val floorPiece = player.dirToTile(direction) as Tile
         val potion = floorPiece.boardPiece as Potion
         floorPiece.clear()
-        if (potion.kind == PotionType.H){
-            player.drink(potion.amt)
-            msgQ.addLast("You drink a red coloured potion giving you ${potion.amt} health.")
-        } else if (potion.kind == PotionType.A){
-            msgQ.addLast("You drink a teal coloured potion changing your attack by ${potion.amt}.")
-            player = AtkDec(player, potion.amt)
-        } else {
-            msgQ.addLast("You drink a green coloured potion changing your defence by ${potion.amt}.")
-            player = DefDec(player, potion.amt)
-        }
+        player = player.drink(potion) ?: player
     }
 
     fun commandLine(): String{

@@ -1,3 +1,5 @@
+import kotlin.math.abs
+
 interface Subject{
     val observers: MutableList<Observer>
     fun attach(observer: Observer){
@@ -11,7 +13,7 @@ interface Subject{
     }
 }
 
-// Player interface contains all methodes a player character is allowed to call
+// Player interface contains all methods a player character is allowed to call
 interface Player: Subject{
     fun move(direction: String)
     fun attack(direction: String)
@@ -19,7 +21,7 @@ interface Player: Subject{
     fun damage(atk: Int): Strike
     fun damage(atk: Int, defBuff: Int): Strike // reserved for the decorator TODO: try to remove
     fun loseGold(lost: Int)
-    fun drink(hp: Int)
+    fun drink(potion: Potion): PlayerDec?
     fun dirToTile(direction: String): Piece
     fun printStats()
     fun printStats(atkBuff: Int, defBuff: Int) // reserved for the decorator TODO: try to remove
@@ -133,8 +135,22 @@ abstract class BasePlayer(hp: Int, atk: Int, def: Int, position: Position, board
         gold -= lost
     }
     
-    override fun drink(hp: Int){
-        this.hp += hp
+    override fun drink(potion: Potion): PlayerDec?{
+        return when (potion.kind) {
+            PotionType.H -> {
+                this.hp += potion.amt
+                board.addMessage("You drink a red coloured potion giving you ${potion.amt} health.")
+                null
+            }
+            PotionType.A -> {
+                board.addMessage("You drink a teal coloured potion changing your attack by ${potion.amt}.")
+                AtkDec(board.player, potion.amt)
+            }
+            else -> {
+                board.addMessage("You drink a green coloured potion changing your defence by ${potion.amt}.")
+                DefDec(board.player, potion.amt)
+            }
+        }
     }
 
     override fun printStats(){
@@ -190,8 +206,8 @@ abstract class PlayerDec(protected val player: Player): Player{
         return player.damage(atk, defBuff)
     }
 
-    override fun drink(hp: Int) {
-        player.drink(hp)
+    override fun drink(potion: Potion): PlayerDec? {
+        return player.drink(potion)
     }
 
     override fun loseGold(lost: Int) {
@@ -295,7 +311,29 @@ class Dwarf(pos: Position, board: Board): BasePlayer(100, 20, 30, pos, board) {
 }
 
 class Elf(pos: Position, board: Board): BasePlayer(140, 30, 10, pos, board) {
-
+    // override drink to make elves negate the effects of negative potions
+    override fun drink(potion: Potion): PlayerDec? {
+        val decoration: PlayerDec? = when (potion.kind) {
+            PotionType.H -> {
+                this.hp += potion.amt
+                board.addMessage("You drink a red coloured potion giving you ${potion.amt} health.")
+                null
+            }
+            PotionType.A -> {
+                board.addMessage("You drink a teal coloured potion changing your attack by ${potion.amt}.")
+                AtkDec(board.player, abs(potion.amt))
+            }
+            else -> {
+                board.addMessage("You drink a green coloured potion changing your defence by ${potion.amt}.")
+                DefDec(board.player, abs(potion.amt))
+            }
+        }
+        
+        if (potion.amt < 0){
+            board.addMessage("Your elvin blood negates the negative effects of the potions making you feel\nstronger!")
+        }
+        return decoration
+    }
 }
 
 class Orc(pos: Position, board: Board): BasePlayer(180, 30, 25, pos, board) {
