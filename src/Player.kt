@@ -69,7 +69,9 @@ abstract class BasePlayer(hp: Int, atk: Int, def: Int, position: Position, board
         }  else if (floorPiece.toString() == "\\"){           // When Player moves onto stairs
             observers.clear()
             board.nextLevel()
-        } else {
+        } else if (floorPiece.toString() == "$"){
+            throw Win("YOU GOT THE TREASURE!! YOU WIN!!")
+        }else {
             board.addMessage("Cannot move there.")
             return
         }
@@ -369,3 +371,4 @@ class PlayerFactory{
 }
 
 class GameOver(message: String) : Exception(message)
+class Win(message: String) : Exception(message)
