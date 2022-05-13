@@ -293,6 +293,7 @@ class Board{
             }
         }
 
+        player = player.clearPotions()
         val pos = repositionPlayer()
         spawnEnemies()
         spawnItems()

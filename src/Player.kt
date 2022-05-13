@@ -15,23 +15,48 @@ interface Subject{
 
 // Player interface contains all methods a player character is allowed to call
 interface Player: Subject{
+    // move moves the player from one floor tile to another specified by direction which is one of no, ne, ea, se, so,
+    //     sw, we and nw
     fun move(direction: String)
+
+    // attack damages an enemy in direction
     fun attack(direction: String)
+
+    // attack(String, Int) overloads attack(String) so the decorator can pass its attack value in
+    //    DO NOT USE OUT OF PlayerDec Class OR ITS CHILDREN
     fun attack(direction: String, atkBuff: Int) // reserved for the decorator TODO: try to remove
+
+    // damage determines the damage dealt with the attackers atk value. It also determines if the player has died and
+    // ends the game if so.
     fun damage(atk: Int): Strike
+
+    // damage(Int, Int) overloads damage(String) so the decorator can pass its defBuff value in
     fun damage(atk: Int, defBuff: Int): Strike // reserved for the decorator TODO: try to remove
     fun loseGold(lost: Int)
     fun drink(potion: Potion): PlayerDec?
+
+    // dirToTile converts string direction (no, ne, ea, se, so, sw, we and nw) to a piece in specified direction
     fun dirToTile(direction: String): Piece
+
+    // printStats displays the character's type, hp, def and atk on the screen
     fun printStats()
+
+    // printStats applies buffs before printing stats
     fun printStats(atkBuff: Int, defBuff: Int) // reserved for the decorator TODO: try to remove
+
+    // printType gets the specific type of PC the user chose
     fun printType(): String
+
+    // clearPotions returns an undecorated player (potion buffs and de-buffs removed) and prints this fact to the user
+    //    if hasPotions is set to true.
+    fun clearPotions(hasPotions: Boolean = false): Player
 }
 
 abstract class BasePlayer(hp: Int, atk: Int, def: Int, position: Position, board: Board):
     Creature(hp, atk, def,'@', position, board), Player {
     /*
-     * Player is the general class for all possible races
+     * BasePlayer is the parent class for all possible races. Please refer to the Player interface for a description
+     *  of what each method does
      *
      * gold: the amount of money the player has
      */
@@ -39,7 +64,6 @@ abstract class BasePlayer(hp: Int, atk: Int, def: Int, position: Position, board
         protected set(value) = if (value < 0) field = 0 else field = value
     override val observers = mutableListOf<Observer>()
 
-    // dirToTile converts string direction (no, so, ea, etc) to a piece in specified direction
     override fun dirToTile(direction:String): Piece{
         // Select tile
         val (row, col) = pos
@@ -54,6 +78,7 @@ abstract class BasePlayer(hp: Int, atk: Int, def: Int, position: Position, board
             else -> board.getFloorPiece(row-1, col-1)
         }
     }
+
     override fun move(direction: String){    
 
         val floorPiece = dirToTile(direction)
@@ -77,7 +102,6 @@ abstract class BasePlayer(hp: Int, atk: Int, def: Int, position: Position, board
         notifyAllObservers()
     }
 
-    // attack damages an enemy in direction
     override fun attack(direction: String) {
         val floorPiece = dirToTile(direction)
         if(floorPiece is Tile && floorPiece.boardPiece is Enemy){           // attack successfully targets an enemy
@@ -101,16 +125,12 @@ abstract class BasePlayer(hp: Int, atk: Int, def: Int, position: Position, board
         }
     }
 
-    // attack(String, Int) overloads attack(String) so the decorator can pass its attack value in
     override fun attack(direction: String, atkBuff: Int){
         atk += atkBuff
         attack(direction)
         atk -= atkBuff
     }
 
-
-    // damage determines the damage dealt with the attackers atk value. It also determines if the player has died and
-    // ends the game if so.
     override fun damage(atk: Int): Strike {
         val damageDealt = takeDamage(atk)
         if (hp <= 0){
@@ -122,14 +142,12 @@ abstract class BasePlayer(hp: Int, atk: Int, def: Int, position: Position, board
         return Strike(damageDealt,false)
     }
 
-    // damage(Int, Int) overloads damage(String) so the decorator can pass its defBuff value in
     override fun damage(atk: Int, defBuff:Int): Strike{
         def += defBuff
         val dmg = damage(atk)
         def -= defBuff
         return dmg
     }
-    
 
     override fun loseGold(lost: Int){
         gold -= lost
@@ -157,7 +175,6 @@ abstract class BasePlayer(hp: Int, atk: Int, def: Int, position: Position, board
         println("Hp: $hp  Atk: $atk  Def: $def  Gold: $gold")
     }
 
-    // printStats applies buffs before printing stats
     override fun printStats(atkBuff: Int, defBuff: Int){
         atk += atkBuff
         def += defBuff
@@ -165,19 +182,22 @@ abstract class BasePlayer(hp: Int, atk: Int, def: Int, position: Position, board
         atk -= atkBuff
         def -= defBuff
     }
-    
-    // printType gets the specific type of PC the user chose
+
     override fun printType(): String {
         return "Player Type: ${javaClass.name}"
     }
-    
+
+    override fun clearPotions(hasPotions: Boolean): Player {
+        if (hasPotions) board.addMessage("You feel the effects of the potions you drank wear off.")
+        return this
+    }
 }
 
 /*
 * Decorators
 */
 
-abstract class PlayerDec(protected val player: Player): Player{
+abstract class PlayerDec(protected val player: Player): Player {
     /*
      * PlayerDec is the parent class for the decorator design pattern
      *
@@ -226,6 +246,9 @@ abstract class PlayerDec(protected val player: Player): Player{
         return player.printType()
     }
 
+    override fun clearPotions(hasPotions: Boolean): Player {
+        return player.clearPotions(true)
+    }
 }
 
 class AtkDec(player: Player, private val buff: Int): PlayerDec(player){
