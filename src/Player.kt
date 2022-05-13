@@ -207,7 +207,7 @@ abstract class PlayerDec(protected val player: Player): Player {
      */
     
      override val observers: MutableList<Observer>
-        get() = throw Exception("retrieved the wrong list of observers (in PlayerDec)")
+        get() = player.observers
 
     override fun move(direction: String) {
         player.move(direction)
