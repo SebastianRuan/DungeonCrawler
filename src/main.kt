@@ -138,7 +138,12 @@ class Board{
     // spawnStaircase to next floor and return it's chamber number
     private fun spawnStaircase(): Int{
         val stairChamber = randGen.nextInt(chambers.size)
-        chambers[stairChamber].randomTile().placePiece(Piece('\\'))
+        if(floor == 5){
+            chambers[stairChamber].randomTile().placePiece(Piece('$'))
+        } else {
+            chambers[stairChamber].randomTile().placePiece(Piece('\\'))
+        }
+
         return stairChamber
     }
 
@@ -375,9 +380,11 @@ class Board{
                     }
                 }
             } catch (e: GameOver){
-                print(this)
+                print(this) //TODO: do we need to print 'this'
                 printMessages()
                 return "game over"
+            } catch (e: Win){
+                return "win"
             }
         }
     }
@@ -389,11 +396,16 @@ fun main(){
         val endType = board.commandLine()
 
         // End Program
-        if (endType == "quit" || endType == "EOF") return
+        if (endType == "quit" || endType == "EOF") {
+            return
+        } else if (endType == "game over"){
+            println("XXX Game Over XXX")
+        } else {
+            println("YOU GOT THE TREASURE!! YOU WIN!!")
+        }
 
         // Replay?
-        println("XXX Game Over XXX")
-        print("Play again? (y)es, (n)o")
+        print("Play again? (y)es, (n)o: ")
         val ans = readLine()
 
         if (ans == "n" || ans == null) return
