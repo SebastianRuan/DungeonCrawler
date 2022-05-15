@@ -11,21 +11,26 @@ class Chamber{
     * Camber is defined by the tiles contained within its walls.
     *
     * tiling: a list of floor pieces that make up the chamber
+    * unoccupiedTiles: a set of integers representing the indexes of the tiles in tiling which are unoccupied
     * */
 
     private val tiling = mutableListOf<Tile>()
-    private val occupiedTiles = mutableSetOf<Int>()
+    private var unoccupiedTiles = mutableSetOf<Int>()
 
     fun append(tile: Tile){
         tiling.add(tile)
-        occupiedTiles.add(tiling.lastIndex)
+        unoccupiedTiles.add(tiling.lastIndex)
     }
 
     // random tile returns a randomly selected tile from tiling
     fun randomTile():Tile{
-        val randIndex = occupiedTiles.random(randGen)
-        occupiedTiles.remove(randIndex)
+        val randIndex = unoccupiedTiles.random(randGen)
+        unoccupiedTiles.remove(randIndex)
         return tiling[randIndex]
+    }
+    
+    fun freeUpTiles(){
+        unoccupiedTiles = (0..tiling.lastIndex).toMutableSet()
     }
 }
 
@@ -180,8 +185,15 @@ class Board{
 
     //getUnoccupiedTile randomly selects an empty tile from the grid
     private fun getUnoccupiedTile():Tile{
-        val randChamber = randGen.nextInt(chambers.size)
-        return chambers[randChamber].randomTile()
+        val randChamber = chambers.random(randGen)
+        return try {
+             randChamber.randomTile()
+        } catch (e: NoSuchElementException){    // no space in chamber 
+            chambers.remove(randChamber)
+            val largerRandChamber = chambers.random(randGen)
+            chambers.add(randChamber)
+            largerRandChamber.randomTile()
+        }
     }
 
     // spawnEnemies creates 20 random enemies with probabilities given in EnemyFactory and returns the list to the board
@@ -297,7 +309,11 @@ class Board{
                 }
             }
         }
-
+        
+        for (chamber in chambers){
+            chamber.freeUpTiles()
+        }
+        
         player = player.clearPotions()
         val pos = repositionPlayer()
         spawnEnemies()
@@ -366,9 +382,9 @@ class Board{
                     "u" -> if (player.dirToTile(param1) is Tile && 
                         (player.dirToTile(param1) as Tile).boardPiece is Potion) {
                         decoratePlayer(param1)
-                    } else {
-                        msgQ.addLast("There is no potion to the $param1")
-                    }
+                        } else {
+                            msgQ.addLast("There is no potion to the $param1")
+                        }
 
                     else -> {
                         //TODO make sure the file reading works with other IDEs
