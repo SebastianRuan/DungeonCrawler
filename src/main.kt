@@ -354,6 +354,7 @@ class Board{
     }
 
     fun commandLine(): String{
+        var prevLine = listOf<String>();
 
         while(true) {
             // print player stats
@@ -366,7 +367,12 @@ class Board{
 
             // get command
             print("Action (h for help): ")
-            val line: List<String> = readLine()?.split(" ") ?: return "EOF"
+            var line: List<String> = readLine()?.split(" ") ?: return "EOF"
+            if(line[0] == ""){
+                line = prevLine.toList()
+            } else {
+                prevLine = line.toList()
+            }
             val cmd: String = line[0]
             val param1: String = if (line.size == 2) line[1] else ""
 
