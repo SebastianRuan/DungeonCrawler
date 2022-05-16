@@ -165,8 +165,11 @@ class Board{
 
         // get player race
         val factory = PlayerFactory()
-        print("Choose a race (h)uman (d)warf (e)lf (o)rc: ")
-        val race = readLine() ?: "h"
+        var race: String
+        do {
+            print("Choose a race (h)uman (d)warf (e)lf (o)rc: ")
+            race = readLine() ?: "h"
+        } while (! (race == "h" || race == "d" || race == "e" || race == "o"))
 
         // spawn and place player
         val tile = newPlayerPos(stairChamber)
