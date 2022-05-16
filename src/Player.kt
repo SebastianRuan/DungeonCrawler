@@ -340,7 +340,7 @@ class Elf(pos: Position, board: Board): BasePlayer(140, 30, 10, pos, board) {
     override fun drink(potion: Potion): PlayerDec? {
         val decoration: PlayerDec? = when (potion.kind) {
             PotionType.H -> {
-                this.hp += potion.amt
+                this.hp += abs(potion.amt)
                 board.addMessage("You drink a red coloured potion giving you ${potion.amt} health.")
                 null
             }
