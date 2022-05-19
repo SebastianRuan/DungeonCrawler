@@ -122,7 +122,7 @@ class Board{
     }
 
 
-    // creatChambers scans through the map to locate and creates the chambers.
+    // createChambers scans through the map to locate and creates the chambers.
     private fun createChambers(){
         for (row in 1 until grid.lastIndex) {                      // loop over the board minus the boards border
             var col = 1
@@ -356,8 +356,64 @@ class Board{
         player = player.drink(potion) ?: player
     }
 
+    // ScoreEntry is for parsing high scores
+    private data class ScoreEntry(val name: String, val score: Int)
+
+    //placeScore asks user for a name to associate with score and adds it to the high Scores
+    private fun placeScore(highScores: MutableList<ScoreEntry>, score: Int, place: Int){
+        print("Enter your name for your high score: ")
+        val name = readLine() ?: "ABC"
+        highScores.add(place, ScoreEntry(name, score))
+    }
+
+    // findPlace determines where score should be located (if at all) in highScores
+    private fun findPlace(highScores: MutableList<ScoreEntry>, score: Int){
+        for (i in 0..highScores.lastIndex){
+            if ( score > highScores[i].score){
+                placeScore(highScores, score, i)
+                if (highScores.size > 5) highScores.removeLast()
+                return
+            }
+        }
+        if(highScores.size < 5) placeScore(highScores, score, highScores.size)
+    }
+
+    // addHighScore determines if a high score was achieved and if so adds it to the high score file.
+    //     win is true if the user won the game
+    private fun addHighScore(win: Boolean){
+        val highScores = mutableListOf<ScoreEntry>()
+        val file = File("high_scores.txt")
+        if (!file.exists()) file.createNewFile()
+
+        // get high scores
+        file.forEachLine {
+            val line = it.split(" ")
+            highScores.add(ScoreEntry(line[0], line[1].toInt()))
+        }
+
+        // calculate score
+        val score = if(win) {
+            (player as BasePlayer).gold + 1000
+        } else {
+            (player as BasePlayer).gold
+        }
+
+        // Add score
+        findPlace(highScores, score)
+
+        // display and store high scores
+        println("HIGH SCORES:")
+        file.printWriter().use { out ->
+            highScores.forEach {
+                out.println("${it.name} ${it.score}")
+                Thread.sleep(500)
+                println("${it.name} ${it.score}")
+            }
+        }
+    }
+
     fun commandLine(): String{
-        var prevLine = listOf<String>();
+        var prevLine = listOf<String>()
 
         while(true) {
             // print player stats
@@ -405,10 +461,13 @@ class Board{
                     }
                 }
             } catch (e: GameOver){
-                print(this) //TODO: do we need to print 'this'
                 printMessages()
+                println("XXX Game Over XXX")
+                addHighScore(false)
                 return "game over"
             } catch (e: Win){
+                println("YOU GOT THE TREASURE!! YOU WIN!!")
+                addHighScore(true)
                 return "win"
             }
         }
@@ -423,10 +482,6 @@ fun main(){
         // End Program
         if (endType == "quit" || endType == "EOF") {
             return
-        } else if (endType == "game over"){
-            println("XXX Game Over XXX")
-        } else {
-            println("YOU GOT THE TREASURE!! YOU WIN!!")
         }
 
         // Replay?

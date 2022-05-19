@@ -62,6 +62,7 @@ abstract class BasePlayer(hp: Int, atk: Int, def: Int, position: Position, board
      */
     var gold = 0
         protected set(value) = if (value < 0) field = 0 else field = value
+
     override val observers = mutableListOf<Observer>()
 
     override fun dirToTile(direction:String): Piece{
