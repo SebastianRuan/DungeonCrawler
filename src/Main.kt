@@ -2,7 +2,7 @@ import java.io.File
 import java.lang.Exception
 import kotlin.random.Random
 
-val randGen = Random(8472) // seed 8472 for testing purposes
+val randGen = Random(System.currentTimeMillis()) // seed 8472 for testing purposes
 
 data class Position(val row: Int, val col: Int)
 
@@ -474,7 +474,7 @@ class Board{
     }
 }
 
-fun main(){
+fun main(args: Array<String>){
     while(true){
         val board = Board()
         val endType = board.commandLine()
