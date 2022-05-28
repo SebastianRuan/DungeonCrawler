@@ -1,7 +1,27 @@
 # Dungeon Crawler
 This is an ascii art video game where you enter commands to make things happen.
 
-## Requirements
+## Compile and Develop
+1. [Download intellij](https://www.jetbrains.com/idea/download/)
+2. [Install kotlin plugin](https://www.jetbrains.com/help/idea/managing-plugins.html)
+3. [Clone the project with intellij](https://www.jetbrains.com/help/idea/manage-projects-hosted-on-github.html#clone-from-GitHub)
+4. Add a kotlin configuration:
+    1. Click the "Add Configuration" in the top right corner.\
+   ![config location](images/run_config_loc.png)
+    2. In the popup window click the + icon and select Kotlin.\
+    ![add kotlin config](images/add_kotlin_config.png)
+    3. Find main.kt by clicking on the ellipse next to the main class field. You should see the following popup:\
+   ![img.png](images/add_main.png)
+   Intellij should automatically find the main funciton for you. If not just type "MainKt" in the Main class field.
+5. To select a JDK open file>>"project structure" window and select project. Select open jdk 16 in the SDK dropdown:\
+![img.png](images/project_struct.png)
+6. To add kotlin libraries select tools>>kotlin>>"configure kotlin in project".
+7. Now press the green-triangular-run button:\
+![img.png](images/run.png)
+
+
+
+## Requirements to Play
 * [Java Run Time Environment](https://www.java.com/en/)
 * A keyboard
 
@@ -15,7 +35,7 @@ you can type "h" without the quotations and press enter.
 You will then be shown the dungeon map. You are the @ symbol in the
 center of the image below. Above the map are your characters stats.
 
-![picture alt](./map.png)
+![picture alt](images/map.png)
 
 "Action (h for help):" is where you type in your commands
 
