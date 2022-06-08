@@ -451,13 +451,16 @@ class Board{
                             msgQ.addLast("There is no potion to the $param1")
                         }
 
-                    else -> {
+                    "h" -> {
                         //TODO make sure the file reading works with other IDEs
                         msgQ.addLast(
                             File("src/help.txt").readLines().fold(""){
                                 x:String, y: String -> x+y+"\n"
                             }
                         )
+                    }
+                    else ->{
+                        msgQ.addLast("'${line.joinToString(separator = " ")}' is not a valid command.")
                     }
                 }
             } catch (e: GameOver){
